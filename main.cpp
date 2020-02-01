@@ -16,6 +16,9 @@ int main(void)
         fractalnova::GuiWindow window;
         fractalnova::NovaContext context { window };
 
+        context.LoadShaders();
+        context.CreateVBO();
+
         while (running) {
             running = window.Run();
 
@@ -29,6 +32,7 @@ int main(void)
             if (window.refresh) {
                 printf("refresh\n");
                 context.Clear();
+                context.Draw();
                 context.SwapBuffers();
                 window.refresh = false;
                 frames++;
