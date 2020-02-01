@@ -1,3 +1,6 @@
+#include "GuiWindow.hpp"
+
+#include <proto/dos.h>
 #include <proto/exec.h>
 #include <proto/warp3dnova.h>
 
@@ -23,5 +26,8 @@ int main(void)
         NovaBase = nullptr;
     }
 
+    fractalnova::GuiWindow window;
+    window.run();
+    //IDOS->Delay(50);
     return 0;
 }
