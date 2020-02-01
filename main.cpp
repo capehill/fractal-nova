@@ -1,33 +1,45 @@
 #include "GuiWindow.hpp"
+#include "NovaContext.hpp"
 
-#include <proto/dos.h>
-#include <proto/exec.h>
-#include <proto/warp3dnova.h>
+//#include <proto/dos.h>
+//#include <proto/exec.h>
 
 #include <cstdio>
-
-//struct ExecIFace* IExec;
-struct Warp3DIFace* IWarp3DNova;
-
-static struct Library* NovaBase;
+#include <exception>
 
 int main(void)
 {
-    NovaBase = IExec->OpenLibrary("Warp3DNova.library", 1);
+    uint64 frames { 0 };
+    bool running { true };
 
-    if (NovaBase) {
-        IWarp3DNova = (struct Warp3DIFace *)IExec->GetInterface(NovaBase, "main", 1, nullptr);
-        if (IWarp3DNova) {
-            puts("Hoplaa");
-            IExec->DropInterface((struct Interface *)IWarp3DNova);
-            IWarp3DNova = nullptr;
+    try {
+        fractalnova::GuiWindow window;
+        fractalnova::NovaContext context { window };
+
+        while (running) {
+            running = window.Run();
+
+            if (window.resize) {
+                printf("resize\n");
+                context.Resize();
+                window.refresh = true;
+                window.resize = false;
+            }
+
+            if (window.refresh) {
+                printf("refresh\n");
+                context.Clear();
+                context.SwapBuffers();
+                window.refresh = false;
+                frames++;
+            }
         }
-        IExec->CloseLibrary(NovaBase);
-        NovaBase = nullptr;
+    } catch (std::exception& e) {
+        printf("Exception %s\n", e.what());
     }
 
-    fractalnova::GuiWindow window;
-    window.run();
+    printf("Frames %llu\n", frames);
+
     //IDOS->Delay(50);
     return 0;
 }

@@ -3,6 +3,8 @@
 #include <proto/exec.h>
 #include <proto/intuition.h>
 
+#include <cstdio>
+
 namespace fractalnova {
 
 namespace {
@@ -22,7 +24,9 @@ GuiWindow::GuiWindow()
         WA_IDCMP, IDCMP_REFRESHWINDOW | IDCMP_NEWSIZE | IDCMP_CLOSEWINDOW,
         WA_InnerWidth, width,
         WA_InnerHeight, height,
-        WA_MaxWidth, 100,
+        WA_MaxHeight, 1024,
+        WA_MaxWidth, 1024,
+        WA_MinHeight, 100,
         WA_MinWidth, 100,
         WA_SimpleRefresh, TRUE,
         WA_SizeGadget, TRUE,
@@ -37,23 +41,32 @@ GuiWindow::~GuiWindow()
     }
 }
 
-void GuiWindow::run()
+bool GuiWindow::Run()
 {
-    IExec->WaitPort(window->UserPort);
-
     IntuiMessage* msg;
 
     bool running { true };
 
-    while (running) {
-        while ((msg = (struct IntuiMessage *)IExec->GetMsg(window->UserPort))) {
-            switch (msg->Class) {
-                case IDCMP_CLOSEWINDOW:
-                    running = false;
-                    break;
-            }
+    while ((msg = (struct IntuiMessage *)IExec->GetMsg(window->UserPort))) {
+        switch (msg->Class) {
+            case IDCMP_CLOSEWINDOW:
+                running = false;
+                break;
+            case IDCMP_NEWSIZE:
+                resize = true;
+                break;
+            case IDCMP_REFRESHWINDOW:
+                refresh = true;
+                break;
+            default:
+                printf("Unknown event %lu\n", msg->Class);
+                break;
         }
+
+        IExec->ReplyMsg((struct Message *)msg);
     }
+
+    return running;
 }
 
 } // fractalnova

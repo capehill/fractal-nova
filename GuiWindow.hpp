@@ -9,9 +9,12 @@ struct GuiWindow
     GuiWindow();
     ~GuiWindow();
 
-    void run();
+    bool Run();
 
     struct Window* window { nullptr };
+
+    mutable bool resize { false };
+    mutable bool refresh { true };
 };
 
 } // fractalnova
