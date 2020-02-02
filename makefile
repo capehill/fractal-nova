@@ -3,7 +3,7 @@ NAME=fractal-nova
 CFLAGS=-Wall -gstabs -O0
 LDFLAGS= -athread=native -lauto
 
-SHADERS=simple.vert.spv simple.frag.spv
+SHADERS=simple.vert.spv simple.frag.spv mandelbrot.vert.spv mandelbrot.frag.spv
 OBJS=main.o GuiWindow.o NovaContext.o
 
 $(NAME): $(OBJS) $(SHADERS)

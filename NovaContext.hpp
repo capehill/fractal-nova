@@ -1,6 +1,6 @@
 #pragma once
 
-#include <proto/warp3dnova.h>
+#include <Warp3DNova/Context.h>
 
 #include <string>
 
@@ -10,7 +10,7 @@ struct GuiWindow;
 
 struct NovaContext
 {
-    NovaContext(const GuiWindow& window);
+    NovaContext(const GuiWindow& window, bool verboseMode);
     ~NovaContext();
 
     void CloseLib();
@@ -18,13 +18,14 @@ struct NovaContext
     W3DN_Shader* CompileShader(const std::string& fileName);
     void LoadShaders();
     void CreateVBO();
+    void CreateDBO();
 
     void Resize();
     void Clear() const;
     void Draw() const;
     void SwapBuffers();
 
-    struct BitMap* backBuffer { nullptr };
+    BitMap* backBuffer { nullptr };
     W3DN_Context* context { nullptr };
 
     W3DN_Shader* vertexShader { nullptr };
@@ -32,12 +33,15 @@ struct NovaContext
 
     W3DN_ShaderPipeline* shaderPipeline { nullptr };
     W3DN_VertexBuffer* vbo { nullptr };
+    W3DN_DataBuffer* dbo { nullptr };
 
     std::string ErrorToString(W3DN_ErrorCode errCode) const;
+    void ThrowOnError(W3DN_ErrorCode errCode, const std::string& message) const;
 
     const GuiWindow& window;
     uint32 width { 0 };
     uint32 height { 0 };
+    bool verbose { false };
 };
 
 } // fractalnova

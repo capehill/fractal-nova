@@ -1,11 +1,16 @@
 #include "GuiWindow.hpp"
 #include "NovaContext.hpp"
+#include "Timer.hpp"
 
 //#include <proto/dos.h>
 //#include <proto/exec.h>
 
 #include <cstdio>
 #include <exception>
+
+namespace {
+    constexpr bool verboseMode { false };
+}
 
 int main(void)
 {
@@ -14,10 +19,11 @@ int main(void)
 
     try {
         fractalnova::GuiWindow window;
-        fractalnova::NovaContext context { window };
+        fractalnova::NovaContext context { window, verboseMode };
 
         context.LoadShaders();
         context.CreateVBO();
+        context.CreateDBO();
 
         while (running) {
             running = window.Run();
@@ -30,7 +36,7 @@ int main(void)
             }
 
             if (window.refresh) {
-                printf("refresh\n");
+                //printf("refresh\n");
                 context.Clear();
                 context.Draw();
                 context.SwapBuffers();
