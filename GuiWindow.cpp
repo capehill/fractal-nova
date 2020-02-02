@@ -69,5 +69,10 @@ bool GuiWindow::Run()
     return running;
 }
 
+void GuiWindow::SetTitle(const char* title)
+{
+    IIntuition->SetWindowTitles(window, title, title);
+}
+
 } // fractalnova
 

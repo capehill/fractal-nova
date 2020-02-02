@@ -29,8 +29,8 @@ namespace {
 struct Warp3DNovaIFace* IW3DNova;
 static struct Library* NovaBase;
 
-NovaContext::NovaContext(const GuiWindow& window, const bool verbose)
-    : window(window), verbose(verbose)
+NovaContext::NovaContext(const GuiWindow& window, const bool verbose, const bool vsync)
+    : window(window), verbose(verbose), vsync(vsync)
 {
     NovaBase = IExec->OpenLibrary("Warp3DNova.library", 1);
 
@@ -264,6 +264,7 @@ void NovaContext::Resize()
     printf("Viewport %lu * %lu\n", width, height);
 }
 
+// Not used at the moment
 void NovaContext::Clear() const
 {
     constexpr float opaqueBlack[4] { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -327,6 +328,10 @@ void NovaContext::SwapBuffers()
     errCode = context->WaitDone(submitID, 0);
 
     ThrowOnError(errCode, "WaitDone failed");
+
+    if (vsync) {
+        IGraphics->WaitTOF();
+    }
 
     IGraphics->BltBitMapRastPort(backBuffer, 0, 0, window.window->RPort, window.window->BorderLeft,
         window.window->BorderTop, width, height, 0xC0);

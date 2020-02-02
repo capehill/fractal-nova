@@ -10,7 +10,7 @@ struct GuiWindow;
 
 struct NovaContext
 {
-    NovaContext(const GuiWindow& window, bool verboseMode);
+    NovaContext(const GuiWindow& window, bool verboseMode, bool vsync);
     ~NovaContext();
 
     void CloseLib();
@@ -42,6 +42,7 @@ struct NovaContext
     uint32 width { 0 };
     uint32 height { 0 };
     bool verbose { false };
+    bool vsync { false };
 };
 
 } // fractalnova

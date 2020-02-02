@@ -10,6 +10,7 @@ struct GuiWindow
     ~GuiWindow();
 
     bool Run();
+    void SetTitle(const char* title);
 
     struct Window* window { nullptr };
 
