@@ -25,3 +25,6 @@ shaders/%.frag.spv: %.frag
 
 clean:
 	delete $(OBJS) $(SHADERS)
+
+strip:
+	strip $(NAME)
