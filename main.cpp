@@ -43,7 +43,6 @@ int main(void)
 {
     uint64 frames { 0 };
     uint64 events { 0 };
-    bool running { true };
     double duration { 0.0 };
 
     fractalnova::ParseArgs();
@@ -61,6 +60,8 @@ int main(void)
         uint64 eventTicks = start;
         uint64 fpsTicks = start;
         uint64 lastFrames = 0;
+
+        bool running { true };
 
         while (running) {
             const uint64 now = timer.GetTicks();
