@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Vertex.hpp"
+
 #include <Warp3DNova/Context.h>
 
 #include <string>
@@ -25,6 +27,9 @@ struct NovaContext
     void Draw() const;
     void SwapBuffers();
 
+    void SetPosition(const Vertex& position);
+    void SetZoom(float zoom);
+
     BitMap* backBuffer { nullptr };
     W3DN_Context* context { nullptr };
 
@@ -43,6 +48,9 @@ struct NovaContext
     uint32 height { 0 };
     bool verbose { false };
     bool vsync { false };
+
+    float zoom { 1.0f };
+    Vertex position { };
 };
 
 } // fractalnova

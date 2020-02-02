@@ -9,16 +9,13 @@
 #include <stdexcept>
 #include <string>
 
-namespace fractalnova {
+// TODO: display coordinate on window title?
 
-struct Vertex {
-    float x, y;
-};
+namespace fractalnova {
 
 struct FragmentShaderData {
     Vertex dimensions;
     Vertex point;
-    Vertex scale;
 };
 
 namespace {
@@ -260,6 +257,8 @@ void NovaContext::Resize()
     ThrowOnError(errCode, "Failed to set viewport");
 
     printf("Viewport %lu * %lu\n", width, height);
+
+    //position = { width / 2.0f, height / 2.0f };
 }
 
 // Not used at the moment
@@ -288,16 +287,30 @@ void NovaContext::Draw() const
 
     FragmentShaderData* data = reinterpret_cast<FragmentShaderData *>(lock->buffer);
 
-    data->dimensions.x = width;
-    data->dimensions.y = height;
+    //const float fw = 3.5f / zoom;
+    //const float fh = 2.0f / zoom;
 
-    data->point.x = -2.5f;
-    data->point.y = -1.0f;
+    const float fx = 3.5f / zoom / width;
+    const float fy = 2.0f / zoom / height;
 
-    data->scale.x = 1.0f;
-    data->scale.y = 1.0f;
+    static Vertex lastPoint { -2.5f, -1.0f };
+    static Vertex lastMouse { 0.0f, 0.0f };
+
+    data->dimensions.x = fx; // 1.0f / width * fw;
+    data->dimensions.y = fy; // 1.0f / height * fh;
+
+    data->point.x = (position.x - width / 2.0f) * fx + lastPoint.x / zoom; //- 2.5f / zoom;
+    data->point.y = (position.y - height / 2.0f) * fy + lastPoint.y / zoom; //- 1.0f / zoom;
 
     errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(FragmentShaderData));
+
+    if (position.x != lastMouse.x || position.y != lastMouse.y) {
+        lastPoint = data->point;
+    }
+
+    lastMouse = position;
+
+    //printf("%f, %f\n", lastPoint.x, lastPoint.y);
 
     ThrowOnError(errCode, "Failed to unlock data buffer object");
 
@@ -321,7 +334,6 @@ void NovaContext::SwapBuffers()
 
     width = std::min(winw, width);
     height = std::min(winh, height);
-//printf("width %lu, height %lu\n", width, height);
 
     errCode = context->WaitDone(submitID, 0);
 
@@ -345,6 +357,16 @@ void NovaContext::ThrowOnError(W3DN_ErrorCode errCode, const std::string& messag
     if (errCode != W3DNEC_SUCCESS) {
         throw std::runtime_error(message + ": " + ErrorToString(errCode));
     }
+}
+
+void NovaContext::SetPosition(const Vertex& pos)
+{
+    position = pos;
+}
+
+void NovaContext::SetZoom(const float z)
+{
+    zoom = z;
 }
 
 } // fractal-nova

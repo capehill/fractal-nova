@@ -2,9 +2,9 @@
 
 precision mediump float;
 
-uniform layout(location = 0) vec2 u_dimension;
+uniform layout(location = 0) vec2 u_factor;
 uniform layout(location = 1) vec2 u_point;
-uniform layout(location = 2) vec2 u_scale;
+//uniform layout(location = 2) float u_scale;
 
 //in layout(location = 0) vec4 color;
 
@@ -12,10 +12,8 @@ out vec4 fragColor;
 
 void main()
 {
-    float _x = 1.0 / u_dimension.x;
-    float _y = 1.0 / u_dimension.y;
-    float x0 = (_x * gl_FragCoord.x * 3.5) / u_scale.x + u_point.x;
-    float y0 = (_y * gl_FragCoord.y * 2.0) / u_scale.y + u_point.y;
+    float x0 = u_factor.x * gl_FragCoord.x + u_point.x;
+    float y0 = u_factor.y * gl_FragCoord.y + u_point.y;
     const int maxIterations = 100;
 
     float x = 0.0;
@@ -33,6 +31,5 @@ void main()
         iteration++;
     }
 
-    //fragColor = vec4(float(iteration) / float(maxIterations), xx / 2.0, yy / 2.0, 1.0);
     fragColor = vec4(1.0 - float(iteration) / float(maxIterations));
 }

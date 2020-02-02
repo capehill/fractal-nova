@@ -79,6 +79,8 @@ int main(void)
             }
 
             if (window.refresh) {
+                context.SetZoom(window.GetZoom());
+                context.SetPosition(window.GetPosition());
                 context.Draw();
                 context.SwapBuffers();
                 //window.refresh = false;
@@ -86,8 +88,8 @@ int main(void)
 
                 const double passed = timer.TicksToSeconds(now - fpsTicks);
                 if (passed >= 1.0) {
-                    char buffer[64];
-                    snprintf(buffer, sizeof(buffer), "FPS %.3f", (frames - lastFrames) / passed);
+                    static char buffer[64];
+                    snprintf(buffer, sizeof(buffer), "FPS %.1f", (frames - lastFrames) / passed);
                     window.SetTitle(buffer);
                     fpsTicks = now;
                     lastFrames = frames;
@@ -103,8 +105,8 @@ int main(void)
         printf("Exception %s\n", e.what());
     }
 
-    printf("Frames %llu in %.3f second. FPS %.3f\n", frames, duration, frames / duration);
-    printf("Events checked %llu. EPS %.3f\n", events, events / duration);
+    printf("Frames %llu in %.1f second. FPS %.1f\n", frames, duration, frames / duration);
+    printf("Events checked %llu. EPS %.1f\n", events, events / duration);
 
     return 0;
 }
