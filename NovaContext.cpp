@@ -51,9 +51,6 @@ NovaContext::NovaContext(const GuiWindow& window, const bool verbose, const bool
     }
 
     Resize();
-
-    //context->SetState(nullptr, W3DN_DEPTHTEST, W3DN_DISABLE);
-    //context->SetState(nullptr, W3DN_DEPTHWRITE, W3DN_DISABLE);
 }
 
 NovaContext::~NovaContext()
@@ -113,9 +110,10 @@ W3DN_Shader* NovaContext::CompileShader(const std::string& fileName)
 {
     W3DN_ErrorCode errCode;
     const char* shaderLog = nullptr;
+    const std::string shaderPath = "shaders/" + fileName;
 
     W3DN_Shader* shader = context->CompileShaderTags(&errCode,
-        W3DNTag_FileName, fileName.c_str(),
+        W3DNTag_FileName, shaderPath.c_str(),
         W3DNTag_Log, &shaderLog,
         W3DNTag_LogLevel, verbose ? W3DNLL_DEBUG : W3DNLL_INFO,
         TAG_DONE);
