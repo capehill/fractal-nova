@@ -84,8 +84,12 @@ bool GuiWindow::Run()
             case IDCMP_RAWKEY:
                 if (msg->Code <= 127) {
                     switch (msg->Code) {
+                        case RAWKEY_ESC:
+                            running = false;
+                            break;
                         case RAWKEY_SPACE:
                             zoom = 1.0f;
+                            // TODO: should reset position
                             refresh = true;
                             break;
                         case RAWKEY_CRSRUP:
