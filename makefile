@@ -1,6 +1,6 @@
 NAME=fractal-nova
 
-CFLAGS=-Wall -gstabs -O3
+CFLAGS=-Wall -Wextra -gstabs -O3
 LDFLAGS= -athread=native -lauto
 
 SHADERS= \
@@ -10,12 +10,17 @@ shaders/mandelbrot.vert.spv \
 shaders/mandelbrot.frag.spv
 
 OBJS=main.o GuiWindow.o NovaContext.o Timer.o
+DEPS = $(OBJS:.o=.d) 
 
 $(NAME): $(OBJS) $(SHADERS)
 	g++ -o $@ $(OBJS) $(LDFLAGS)
 
 %.o: %.cpp
 	g++ -o $@ -c $< $(CFLAGS)
+
+# Dependencies
+%.d : %.cpp
+	g++ -MM -MP -MT $(@:.d=.o) -o $@ $< $(CFLAGS)   
 
 shaders/%.vert.spv: %.vert
 	glslangValidator -G -o $@ $<
@@ -28,3 +33,7 @@ clean:
 
 strip:
 	strip $(NAME)
+
+ifneq ($(MAKECMDGOALS),clean)
+-include $(DEPS)
+endif   
