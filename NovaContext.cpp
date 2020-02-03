@@ -10,6 +10,7 @@
 #include <string>
 
 // TODO: display coordinate on window title?
+// TODO: shader, texture, vbo, dbo classes?
 
 namespace fractalnova {
 
@@ -52,17 +53,26 @@ NovaContext::NovaContext(const GuiWindow& window, const bool verbose, const bool
 
 NovaContext::~NovaContext()
 {
+    if (texture) {
+        context->BindTexture(nullptr, 0, nullptr, nullptr);
+        context->DestroyTexture(texture);
+        texture = nullptr;
+    }
+
     if (dbo) {
+        context->BindShaderDataBuffer(nullptr, W3DNST_FRAGMENT, nullptr, 0);
         context->DestroyDataBufferObject(dbo);
         dbo = nullptr;
     }
 
     if (vbo) {
+        context->BindVertexAttribArray(nullptr, 0 /* attribNum*/, nullptr, 0 /* arrayIdx */);
         context->DestroyVertexBufferObject(vbo);
         vbo = nullptr;
     }
 
     if (shaderPipeline) {
+        context->SetShaderPipeline(nullptr, nullptr);
         context->DestroyShaderPipeline(shaderPipeline);
         shaderPipeline = nullptr;
     }
@@ -218,6 +228,75 @@ void NovaContext::CreateDBO()
     ThrowOnError(errCode, "Failed to bind data buffer object");
 }
 
+void NovaContext::CreateTexture()
+{
+    // TODO: -> palette class
+    struct Color {
+        uint8 r;
+        uint8 g;
+        uint8 b;
+        uint8 a;
+    };
+
+    constexpr int colors { 256 };
+
+    Color buffer[colors];
+
+    constexpr Color range[] {
+        { 0, 0, 0, 255 },
+        { 255, 255, 255, 255 },
+        { 255, 0, 0, 255 },
+        { 255, 255, 255, 255 },
+        { 0, 0, 255, 255 },
+        { 255, 255, 255, 255 },
+        { 0, 255, 0, 255 },
+        { 0, 0, 0, 255 }
+    };
+
+    constexpr int shifts { (sizeof(range) / sizeof(Color)) - 1};
+    constexpr int colorsPerShift = colors / shifts;
+
+    for (int i = 0; i < shifts; i++) {
+        constexpr float cps { colorsPerShift };
+
+        const float r = (range[i + 1].r - range[i].r) / cps;
+        const float g = (range[i + 1].g - range[i].g) / cps;
+        const float b = (range[i + 1].b - range[i].b) / cps;
+
+        for (int j = 0; j < colorsPerShift; j++) {
+            const int index = i * colorsPerShift + j;
+
+            buffer[index].r = range[i].r + j * r;
+            buffer[index].g = range[i].g + j * g;
+            buffer[index].b = range[i].b + j * b;
+            buffer[index].a = 255;
+        }
+    }
+
+    W3DN_ErrorCode errCode;
+
+    texture = context->CreateTexture(&errCode, W3DN_TEXTURE_2D, W3DNPF_RGBA, W3DNEF_UINT8,
+        colors, 1, 1 /* depth */, FALSE /* mipmapped*/, W3DN_STATIC_DRAW);
+
+    ThrowOnError(errCode, "Failed to create texture");
+
+    errCode = context->TexUpdateImage(texture, buffer, 0 /* level */, 0 /* arrayIdx */, sizeof(Color) * colors, 0 /* srcRowsPerLayer */);
+
+    ThrowOnError(errCode, "Failed to update texture");
+
+    sampler = context->CreateTexSampler(&errCode);
+
+    ThrowOnError(errCode, "Failed to create texture sampler");
+
+    errCode = context->TSSetParametersTags(sampler, W3DN_TEXTURE_MIN_FILTER, W3DN_NEAREST /*W3DN_LINEAR*/, TAG_DONE);
+
+    ThrowOnError(errCode, "Failed to set texture sampler parameters");
+
+    context->BindTexture(nullptr, 0 /* texture unit */, texture, sampler);
+
+    ThrowOnError(errCode, "Failed to bind texture");
+}
+
 void NovaContext::Resize()
 {
     if ((IIntuition->GetWindowAttrs(window.window,
@@ -287,6 +366,8 @@ void NovaContext::Draw() const
 
     FragmentShaderData* data = reinterpret_cast<FragmentShaderData *>(lock->buffer);
 
+    // TODO: zoom doesn't work properly
+
     //const float fw = 3.5f / zoom;
     //const float fh = 2.0f / zoom;
 
@@ -302,12 +383,17 @@ void NovaContext::Draw() const
     data->point.x = (position.x - width / 2.0f) * fx + lastPoint.x / zoom; //- 2.5f / zoom;
     data->point.y = (position.y - height / 2.0f) * fy + lastPoint.y / zoom; //- 1.0f / zoom;
 
-    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(FragmentShaderData));
-
     if (position.x != lastMouse.x || position.y != lastMouse.y) {
         lastPoint = data->point;
     }
 
+    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(FragmentShaderData));
+
+/*
+    if (position.x != lastMouse.x || position.y != lastMouse.y) {
+        lastPoint = data->point;
+    }
+*/
     lastMouse = position;
 
     //printf("%f, %f\n", lastPoint.x, lastPoint.y);

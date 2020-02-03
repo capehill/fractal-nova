@@ -55,6 +55,7 @@ int main(void)
         context.LoadShaders();
         context.CreateVBO();
         context.CreateDBO();
+        context.CreateTexture();
 
         const uint64 start = timer.GetTicks();
         uint64 eventTicks = start;

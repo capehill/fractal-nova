@@ -21,6 +21,7 @@ struct NovaContext
     void LoadShaders();
     void CreateVBO();
     void CreateDBO();
+    void CreateTexture();
 
     void Resize();
     void Clear() const;
@@ -39,6 +40,8 @@ struct NovaContext
     W3DN_ShaderPipeline* shaderPipeline { nullptr };
     W3DN_VertexBuffer* vbo { nullptr };
     W3DN_DataBuffer* dbo { nullptr };
+    W3DN_Texture* texture { nullptr };
+    W3DN_TextureSampler* sampler { nullptr };
 
     std::string ErrorToString(W3DN_ErrorCode errCode) const;
     void ThrowOnError(W3DN_ErrorCode errCode, const std::string& message) const;
