@@ -40,7 +40,7 @@ std::vector<Color> Palette::Create()
         const float g = (c2.g - c1.g) / flen;
         const float b = (c2.b - c1.b) / flen;
 
-        for (int j; j < len; j++) {
+        for (int j = 0; j < len; j++) {
             colors.emplace_back(Color {
                 static_cast<uint8_t>(c1.r + j * r),
                 static_cast<uint8_t>(c1.g + j * g),
