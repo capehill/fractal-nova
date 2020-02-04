@@ -1,5 +1,6 @@
 #include "NovaContext.hpp"
 #include "GuiWindow.hpp"
+#include "Palette.hpp"
 
 #include <proto/exec.h>
 #include <proto/graphics.h>
@@ -17,6 +18,7 @@ namespace fractalnova {
 struct FragmentShaderData {
     Vertex dimensions;
     Vertex point;
+    int32 iterations;
 };
 
 namespace {
@@ -27,8 +29,8 @@ namespace {
 struct Warp3DNovaIFace* IW3DNova;
 static struct Library* NovaBase;
 
-NovaContext::NovaContext(const GuiWindow& window, const bool verbose, const bool vsync)
-    : window(window), verbose(verbose), vsync(vsync)
+NovaContext::NovaContext(const GuiWindow& window, const bool verbose, const bool vsync, const int iterations)
+    : window(window), verbose(verbose), vsync(vsync), iterations(iterations)
 {
     NovaBase = IExec->OpenLibrary("Warp3DNova.library", 1);
 
@@ -230,57 +232,23 @@ void NovaContext::CreateDBO()
 
 void NovaContext::CreateTexture()
 {
-    // TODO: -> palette class
-    struct Color {
-        uint8 r;
-        uint8 g;
-        uint8 b;
-        uint8 a;
-    };
+    Palette palette { 4 * 256 };
 
-    constexpr int colors { 256 };
+    palette.Add( {   0,   0,   0, 255 }, 1.0f );
+    palette.Add( {   0,   0, 255, 255 }, 2.0f );
+    palette.Add( { 255, 255, 255, 255 }, 4.0f );
+    palette.Add( {   0,   0,   0, 255 }, 1.0f );
 
-    Color buffer[colors];
-
-    constexpr Color range[] {
-        { 0, 0, 0, 255 },
-        { 255, 255, 255, 255 },
-        { 255, 0, 0, 255 },
-        { 255, 255, 255, 255 },
-        { 0, 0, 255, 255 },
-        { 255, 255, 255, 255 },
-        { 0, 255, 0, 255 },
-        { 0, 0, 0, 255 }
-    };
-
-    constexpr int shifts { (sizeof(range) / sizeof(Color)) - 1};
-    constexpr int colorsPerShift = colors / shifts;
-
-    for (int i = 0; i < shifts; i++) {
-        constexpr float cps { colorsPerShift };
-
-        const float r = (range[i + 1].r - range[i].r) / cps;
-        const float g = (range[i + 1].g - range[i].g) / cps;
-        const float b = (range[i + 1].b - range[i].b) / cps;
-
-        for (int j = 0; j < colorsPerShift; j++) {
-            const int index = i * colorsPerShift + j;
-
-            buffer[index].r = range[i].r + j * r;
-            buffer[index].g = range[i].g + j * g;
-            buffer[index].b = range[i].b + j * b;
-            buffer[index].a = 255;
-        }
-    }
+    auto colors = palette.Create();
 
     W3DN_ErrorCode errCode;
 
     texture = context->CreateTexture(&errCode, W3DN_TEXTURE_2D, W3DNPF_RGBA, W3DNEF_UINT8,
-        colors, 1, 1 /* depth */, FALSE /* mipmapped*/, W3DN_STATIC_DRAW);
+        colors.size(), 1, 1 /* depth */, FALSE /* mipmapped*/, W3DN_STATIC_DRAW);
 
     ThrowOnError(errCode, "Failed to create texture");
 
-    errCode = context->TexUpdateImage(texture, buffer, 0 /* level */, 0 /* arrayIdx */, sizeof(Color) * colors, 0 /* srcRowsPerLayer */);
+    errCode = context->TexUpdateImage(texture, colors.data(), 0 /* level */, 0 /* arrayIdx */, sizeof(Color) * colors.size(), 0 /* srcRowsPerLayer */);
 
     ThrowOnError(errCode, "Failed to update texture");
 
@@ -382,6 +350,8 @@ void NovaContext::Draw() const
 
     data->point.x = (position.x - width / 2.0f) * fx + lastPoint.x / zoom; //- 2.5f / zoom;
     data->point.y = (position.y - height / 2.0f) * fy + lastPoint.y / zoom; //- 1.0f / zoom;
+
+    data->iterations = iterations;
 
     if (position.x != lastMouse.x || position.y != lastMouse.y) {
         lastPoint = data->point;

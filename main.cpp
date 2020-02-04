@@ -19,18 +19,30 @@ namespace {
 
 struct Params {
     LONG vsync;
+    LONG* iter;
 };
 
-static Params params { 0 };
+static Params params { 0, nullptr };
+
+static int32 iterations { 100 };
 
 void ParseArgs()
 {
-    const char* const pattern = "VSYNC/S";
+    const char* const pattern = "VSYNC/S,ITER/N";
 
     struct RDArgs *result = IDOS->ReadArgs(pattern, (int32 *)&params, NULL);
 
     if (result) {
         printf("VSYNC [%s]\n", params.vsync ? "on" : "off");
+        if (params.iter) {
+            iterations = *params.iter;
+            if (iterations < 10) {
+                iterations = 10;
+            } else if (iterations > 1000) {
+                iterations = 1000;
+            }
+        }
+        printf("ITER [%ld]\n", iterations);
         IDOS->FreeArgs(result);
     } else {
         printf("Error when reading command-line arguments. Known parameters are: %s\n", pattern);
@@ -49,7 +61,7 @@ int main(void)
 
     try {
         fractalnova::GuiWindow window;
-        fractalnova::NovaContext context { window, fractalnova::verboseMode, fractalnova::params.vsync };
+        fractalnova::NovaContext context { window, fractalnova::verboseMode, fractalnova::params.vsync, fractalnova::iterations };
         fractalnova::Timer timer;
 
         context.LoadShaders();

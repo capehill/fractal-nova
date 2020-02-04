@@ -9,7 +9,7 @@ shaders/simple.frag.spv \
 shaders/mandelbrot.vert.spv \
 shaders/mandelbrot.frag.spv
 
-OBJS=main.o GuiWindow.o NovaContext.o Timer.o
+OBJS=main.o GuiWindow.o NovaContext.o Timer.o Palette.o
 DEPS = $(OBJS:.o=.d) 
 
 $(NAME): $(OBJS) $(SHADERS)

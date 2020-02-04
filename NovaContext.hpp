@@ -12,7 +12,7 @@ struct GuiWindow;
 
 struct NovaContext
 {
-    NovaContext(const GuiWindow& window, bool verboseMode, bool vsync);
+    NovaContext(const GuiWindow& window, bool verboseMode, bool vsync, int iterations);
     ~NovaContext();
 
     void CloseLib();
@@ -51,6 +51,7 @@ struct NovaContext
     uint32 height { 0 };
     bool verbose { false };
     bool vsync { false };
+    int iterations { 0 };
 
     float zoom { 1.0f };
     Vertex position { };
