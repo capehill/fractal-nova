@@ -28,6 +28,9 @@ std::vector<Color> Palette::Create()
         throw std::runtime_error("Invalid weight");
     }
 
+    // Make it cyclic
+    weightedColors.emplace_back(weightedColors.front());
+
     for (size_t i = 0; i < weightedColors.size() - 1; i++) {
 
         const int len = weightedColors[i].w / weight * size;

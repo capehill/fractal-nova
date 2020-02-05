@@ -9,11 +9,16 @@
 
 #include <stdexcept>
 #include <string>
+#include <cmath>
 
 // TODO: display coordinate on window title?
 // TODO: shader, texture, vbo, dbo classes?
 
 namespace fractalnova {
+
+struct VertexShaderData {
+    float angle;
+};
 
 struct FragmentShaderData {
     Vertex dimensions;
@@ -23,7 +28,9 @@ struct FragmentShaderData {
 
 namespace {
     constexpr uint32 posArrayIndex { 0 };
+    constexpr uint32 texCoordArrayIndex { 1 };
     constexpr uint32 vertexCount { 4 };
+    constexpr bool textureFiltering { false };
 }
 
 struct Warp3DNovaIFace* IW3DNova;
@@ -61,14 +68,21 @@ NovaContext::~NovaContext()
         texture = nullptr;
     }
 
-    if (dbo) {
+    if (vertexDbo) {
+        context->BindShaderDataBuffer(nullptr, W3DNST_VERTEX, nullptr, 0);
+        context->DestroyDataBufferObject(vertexDbo);
+        vertexDbo = nullptr;
+    }
+
+    if (fragmentDbo) {
         context->BindShaderDataBuffer(nullptr, W3DNST_FRAGMENT, nullptr, 0);
-        context->DestroyDataBufferObject(dbo);
-        dbo = nullptr;
+        context->DestroyDataBufferObject(fragmentDbo);
+        fragmentDbo = nullptr;
     }
 
     if (vbo) {
         context->BindVertexAttribArray(nullptr, 0 /* attribNum*/, nullptr, 0 /* arrayIdx */);
+        context->BindVertexAttribArray(nullptr, 1 /* attribNum*/, nullptr, 0 /* arrayIdx */);
         context->DestroyVertexBufferObject(vbo);
         vbo = nullptr;
     }
@@ -173,38 +187,53 @@ void NovaContext::LoadShaders()
 
 void NovaContext::CreateVBO()
 {
-    constexpr uint32 arrayCount { 1 };
+    constexpr uint32 arrayCount { 2 };
 
     W3DN_ErrorCode errCode;
 
     vbo = context->CreateVertexBufferObjectTags(&errCode,
-        vertexCount * sizeof(Vertex), W3DN_STATIC_DRAW, arrayCount, TAG_DONE);
+        vertexCount * sizeof(Vertex4), W3DN_STATIC_DRAW, arrayCount, TAG_DONE);
 
     ThrowOnError(errCode, "Failed create vertex buffer object");
 
-    constexpr uint32 stride { sizeof(Vertex) };
+    constexpr uint32 stride { sizeof(Vertex4) };
     constexpr uint32 posElementCount { 2 };
+    constexpr uint32 texCoordElementCount { 2 };
 
     errCode = context->VBOSetArray(vbo, posArrayIndex, W3DNEF_FLOAT, FALSE, posElementCount, stride, 0, vertexCount);
+
+    ThrowOnError(errCode, "Failed to set VBO array");
+
+    errCode = context->VBOSetArray(vbo, texCoordArrayIndex, W3DNEF_FLOAT, FALSE, texCoordElementCount, stride, 0, vertexCount);
+
+    ThrowOnError(errCode, "Failed to set VBO array (texCoord)");
 
     W3DN_BufferLock* lock = context->VBOLock(&errCode, vbo, 0, 0);
 
     ThrowOnError(errCode, "Failed to lock vertex buffer object");
 
-    Vertex* vertices = reinterpret_cast<Vertex *>(lock->buffer);
+    Vertex4* vertices = reinterpret_cast<Vertex4 *>(lock->buffer);
 
     // Make a quad
     vertices[0].x = -1.0f;
     vertices[0].y = -1.0f;
+    vertices[0].s = 0.0f;
+    vertices[0].t = 0.0f;
 
     vertices[1].x = -1.0f;
     vertices[1].y =  1.0f;
+    vertices[1].s =  0.0f;
+    vertices[1].t =  1.0f;
 
     vertices[2].x =  1.0f;
     vertices[2].y = -1.0f;
+    vertices[2].s =  1.0f;
+    vertices[2].t =  1.0f;
 
     vertices[3].x = 1.0f;
     vertices[3].y = 1.0f;
+    vertices[3].s = 1.0f;
+    vertices[3].t = 0.0f;
 
     errCode = context->BufferUnlock(lock, 0, lock->size);
 
@@ -213,21 +242,120 @@ void NovaContext::CreateVBO()
 
 void NovaContext::CreateDBO()
 {
+    CreateVertexDBO();
+    CreateFragmentDBO();
+}
+
+void NovaContext::CreateVertexDBO()
+{
     W3DN_ErrorCode errCode;
 
-    dbo = context->CreateDataBufferObjectTags(&errCode, sizeof(FragmentShaderData), W3DN_STREAM_DRAW, 1,
+    vertexDbo = context->CreateDataBufferObjectTags(&errCode, sizeof(VertexShaderData), W3DN_STREAM_DRAW, 1,
         TAG_DONE);
 
-    ThrowOnError(errCode, "Failed to create data buffer object");
+    ThrowOnError(errCode, "Failed to create data buffer object (vertex)");
 
-    context->DBOSetBufferTags(dbo, 0 /* bufferIdx */, 0 /* offset */, sizeof(FragmentShaderData), fragmentShader,
+    context->DBOSetBufferTags(vertexDbo, 0 /* bufferIdx */, 0 /* offset */, sizeof(VertexShaderData), vertexShader,
         TAG_DONE);
 
-    ThrowOnError(errCode, "Failed to set data buffer object");
+    ThrowOnError(errCode, "Failed to set data buffer object (vertex)");
 
-    context->BindShaderDataBuffer(nullptr, W3DNST_FRAGMENT, dbo, 0 /* bufferIdx */);
+    context->BindShaderDataBuffer(nullptr, W3DNST_VERTEX, vertexDbo, 0 /* bufferIdx */);
 
-    ThrowOnError(errCode, "Failed to bind data buffer object");
+    ThrowOnError(errCode, "Failed to bind data buffer object (vertex)");
+}
+
+void NovaContext::CreateFragmentDBO()
+{
+    W3DN_ErrorCode errCode;
+
+    fragmentDbo = context->CreateDataBufferObjectTags(&errCode, sizeof(FragmentShaderData), W3DN_STREAM_DRAW, 1,
+        TAG_DONE);
+
+    ThrowOnError(errCode, "Failed to create data buffer object (fragment)");
+
+    context->DBOSetBufferTags(fragmentDbo, 0 /* bufferIdx */, 0 /* offset */, sizeof(FragmentShaderData), fragmentShader,
+        TAG_DONE);
+
+    ThrowOnError(errCode, "Failed to set data buffer object (fragment)");
+
+    context->BindShaderDataBuffer(nullptr, W3DNST_FRAGMENT, fragmentDbo, 0 /* bufferIdx */);
+
+    ThrowOnError(errCode, "Failed to bind data buffer object (fragment)");
+}
+
+void NovaContext::UpdateVertexDBO() const
+{
+    W3DN_ErrorCode errCode;
+
+    static float angle = 0.0f;
+
+    W3DN_BufferLock* lock = context->DBOLock(&errCode, vertexDbo, 0 /* readOffset */, 0 /* readSize */);
+
+    if (!lock) {
+        ThrowOnError(errCode, "Failed to lock data buffer object (vertex)");
+    }
+
+    VertexShaderData* data = reinterpret_cast<VertexShaderData *>(lock->buffer);
+
+    data->angle = angle * M_PI/ 180.0f;
+
+    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(VertexShaderData));
+
+    ThrowOnError(errCode, "Failed to unlock data buffer object (vertex)");
+
+    // angle += 1.0f;
+
+    if (angle >= 360.0f) {
+        angle = 0.0f;
+    }
+}
+
+void NovaContext::UpdateFragmentDBO() const
+{
+    //const float fw = 3.5f / zoom;
+    //const float fh = 2.0f / zoom;
+
+#if 1
+    const float fx = 3.5f / zoom / width;
+    const float fy = 2.0f / zoom / height;
+#else
+    const float fx = 3.5f / zoom;
+    const float fy = 2.0f / zoom;
+#endif
+
+    static Vertex lastPoint { -2.5f, -1.0f };
+    static Vertex lastMouse { 0.0f, 0.0f };
+
+    W3DN_ErrorCode errCode;
+
+    W3DN_BufferLock* lock = context->DBOLock(&errCode, fragmentDbo, 0 /* readOffset */, 0 /* readSize */);
+
+    if (!lock) {
+        ThrowOnError(errCode, "Failed to lock data buffer object (fragment)");
+    }
+
+    FragmentShaderData* data = reinterpret_cast<FragmentShaderData *>(lock->buffer);
+
+    data->dimensions.x = fx * width; // 1.0f / width * fw;
+    data->dimensions.y = fy * height; // 1.0f / height * fh;
+
+    data->point.x = (position.x - width / 2.0f) * fx + lastPoint.x / zoom; //- 2.5f / zoom;
+    data->point.y = (position.y - height / 2.0f) * fy + lastPoint.y / zoom; //- 1.0f / zoom;
+
+    data->iterations = iterations;
+
+    if (position.x != lastMouse.x || position.y != lastMouse.y) {
+        lastPoint = data->point;
+    }
+
+    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(FragmentShaderData));
+
+    lastMouse = position;
+
+    //printf("%f, %f\n", lastPoint.x, lastPoint.y);
+
+    ThrowOnError(errCode, "Failed to unlock data buffer object (fragment)");
 }
 
 void NovaContext::CreateTexture()
@@ -235,9 +363,8 @@ void NovaContext::CreateTexture()
     Palette palette { 4 * 256 };
 
     palette.Add( {   0,   0,   0, 255 }, 1.0f );
-    palette.Add( {   0,   0, 255, 255 }, 2.0f );
-    palette.Add( { 255, 255, 255, 255 }, 4.0f );
-    palette.Add( {   0,   0,   0, 255 }, 1.0f );
+    palette.Add( {   0,   0, 255, 255 }, 4.0f );
+    palette.Add( { 255, 255, 255, 255 }, 8.0f );
 
     auto colors = palette.Create();
 
@@ -256,7 +383,9 @@ void NovaContext::CreateTexture()
 
     ThrowOnError(errCode, "Failed to create texture sampler");
 
-    errCode = context->TSSetParametersTags(sampler, W3DN_TEXTURE_MIN_FILTER, W3DN_NEAREST /*W3DN_LINEAR*/, TAG_DONE);
+    errCode = context->TSSetParametersTags(sampler,
+        W3DN_TEXTURE_MIN_FILTER, textureFiltering ? W3DN_LINEAR : W3DN_NEAREST,
+        TAG_DONE);
 
     ThrowOnError(errCode, "Failed to set texture sampler parameters");
 
@@ -321,54 +450,18 @@ void NovaContext::Clear() const
 void NovaContext::Draw() const
 {
     constexpr uint32 posAttributeIndex { 0 };
+    constexpr uint32 texCoordAttributeIndex { 0 };
 
     W3DN_ErrorCode errCode = context->BindVertexAttribArray(nullptr, posArrayIndex, vbo, posAttributeIndex);
 
-    ThrowOnError(errCode, "Failed to bind vertex attribute array");
+    ThrowOnError(errCode, "Failed to bind vertex attribute array (pos)");
 
-    W3DN_BufferLock* lock = context->DBOLock(&errCode, dbo, 0 /* readOffset */, 0 /* readSize */);
+    errCode = context->BindVertexAttribArray(nullptr, texCoordArrayIndex, vbo, texCoordAttributeIndex);
 
-    if (!lock) {
-        ThrowOnError(errCode, "Failed to lock data buffer object");
-    }
+    ThrowOnError(errCode, "Failed to bind vertex attribute array (texCoord)");
 
-    FragmentShaderData* data = reinterpret_cast<FragmentShaderData *>(lock->buffer);
-
-    // TODO: zoom doesn't work properly
-
-    //const float fw = 3.5f / zoom;
-    //const float fh = 2.0f / zoom;
-
-    const float fx = 3.5f / zoom / width;
-    const float fy = 2.0f / zoom / height;
-
-    static Vertex lastPoint { -2.5f, -1.0f };
-    static Vertex lastMouse { 0.0f, 0.0f };
-
-    data->dimensions.x = fx; // 1.0f / width * fw;
-    data->dimensions.y = fy; // 1.0f / height * fh;
-
-    data->point.x = (position.x - width / 2.0f) * fx + lastPoint.x / zoom; //- 2.5f / zoom;
-    data->point.y = (position.y - height / 2.0f) * fy + lastPoint.y / zoom; //- 1.0f / zoom;
-
-    data->iterations = iterations;
-
-    if (position.x != lastMouse.x || position.y != lastMouse.y) {
-        lastPoint = data->point;
-    }
-
-    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(FragmentShaderData));
-
-/*
-    if (position.x != lastMouse.x || position.y != lastMouse.y) {
-        lastPoint = data->point;
-    }
-*/
-    lastMouse = position;
-
-    //printf("%f, %f\n", lastPoint.x, lastPoint.y);
-
-    ThrowOnError(errCode, "Failed to unlock data buffer object");
+    UpdateVertexDBO();
+    UpdateFragmentDBO();
 
     errCode = context->DrawArrays(nullptr, W3DN_PRIM_TRISTRIP, 0 /* base */, vertexCount);
 

@@ -19,8 +19,15 @@ struct NovaContext
 
     W3DN_Shader* CompileShader(const std::string& fileName);
     void LoadShaders();
+
     void CreateVBO();
+
     void CreateDBO();
+    void CreateVertexDBO();
+    void CreateFragmentDBO();
+    void UpdateVertexDBO() const;
+    void UpdateFragmentDBO() const;
+
     void CreateTexture();
 
     void Resize();
@@ -39,7 +46,8 @@ struct NovaContext
 
     W3DN_ShaderPipeline* shaderPipeline { nullptr };
     W3DN_VertexBuffer* vbo { nullptr };
-    W3DN_DataBuffer* dbo { nullptr };
+    W3DN_DataBuffer* vertexDbo { nullptr };
+    W3DN_DataBuffer* fragmentDbo { nullptr };
     W3DN_Texture* texture { nullptr };
     W3DN_TextureSampler* sampler { nullptr };
 

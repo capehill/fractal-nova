@@ -8,12 +8,19 @@ uniform layout(location = 2) int u_iterations;
 
 uniform layout(binding = 0) sampler2D texSampler;
 
+in vec2 texCoord;
 out vec4 fragColor;
 
 void main()
 {
-    float x0 = u_factor.x * gl_FragCoord.x + u_point.x;
-    float y0 = u_factor.y * gl_FragCoord.y + u_point.y;
+//    float x0 = u_factor.x * gl_FragCoord.x + u_point.x;
+//    float y0 = u_factor.y * gl_FragCoord.y + u_point.y;
+//    float x0 = u_factor.x * texCoord.x + u_point.x;
+//    float y0 = u_factor.y * texCoord.y + u_point.y;
+
+    float x0 = 3.5 * texCoord.x;
+    float y0 = 2.0 * texCoord.y;
+
     const int maxIterations = 1000;
 
     float x = 0.0;
@@ -33,6 +40,6 @@ void main()
     }
 
     //fragColor = vec4(1.0 - float(iteration) / float(maxIterations));
-    //fragColor = texture(texSampler, vec2(float(iteration) / float(u_iterations), 0.0));
-    fragColor = texture(texSampler, vec2(float(iteration) / 100.0, 0.0));
+    fragColor = texture(texSampler, vec2(float(iteration) / float(u_iterations), 0.0));
+    //fragColor = texture(texSampler, vec2(float(iteration) / 100.0, 0.0));
 }
