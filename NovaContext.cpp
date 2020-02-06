@@ -11,26 +11,27 @@
 #include <string>
 #include <cmath>
 
-// TODO: display coordinate on window title?
+// TODO: display coordinate/zoom on window title?
 // TODO: shader, texture, vbo, dbo classes?
 
 namespace fractalnova {
 
 struct VertexShaderData {
     float angle;
+    float zoom;
+    Vertex point;
 };
 
 struct FragmentShaderData {
-    Vertex dimensions;
-    Vertex point;
     int32 iterations;
 };
 
 namespace {
-    constexpr uint32 posArrayIndex { 0 };
-    constexpr uint32 texCoordArrayIndex { 1 };
-    constexpr uint32 vertexCount { 4 };
-    constexpr bool textureFiltering { false };
+    static constexpr uint32 posArrayIndex { 0 };
+    static constexpr uint32 texCoordArrayIndex { 1 };
+    static constexpr uint32 vertexCount { 4 };
+    static constexpr bool textureFiltering { false };
+    static constexpr float toRadians { M_PI/ 180.0f };
 }
 
 struct Warp3DNovaIFace* IW3DNova;
@@ -149,7 +150,7 @@ W3DN_Shader* NovaContext::CompileShader(const std::string& fileName)
             context->DestroyShaderLog(shaderLog);
         }
 
-        ThrowOnError(errCode, "Failed to compiler shader " + fileName);
+        ThrowOnError(errCode, "Failed to compile shader " + fileName);
     }
 
     if (shaderLog) {
@@ -298,7 +299,15 @@ void NovaContext::UpdateVertexDBO() const
 
     VertexShaderData* data = reinterpret_cast<VertexShaderData *>(lock->buffer);
 
-    data->angle = angle * M_PI/ 180.0f;
+    data->angle = angle * toRadians;
+    data->zoom = zoom;
+    data->point = { position.x + oldPosition.x, position.y + oldPosition.y };
+
+    if (oldPosition.x != data->point.x || oldPosition.y != data->point.y) {
+        printf("%f, %f\n", oldPosition.x, oldPosition.y);
+    }
+
+    oldPosition = data->point;
 
     errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(VertexShaderData));
 
@@ -313,20 +322,6 @@ void NovaContext::UpdateVertexDBO() const
 
 void NovaContext::UpdateFragmentDBO() const
 {
-    //const float fw = 3.5f / zoom;
-    //const float fh = 2.0f / zoom;
-
-#if 1
-    const float fx = 3.5f / zoom / width;
-    const float fy = 2.0f / zoom / height;
-#else
-    const float fx = 3.5f / zoom;
-    const float fy = 2.0f / zoom;
-#endif
-
-    static Vertex lastPoint { -2.5f, -1.0f };
-    static Vertex lastMouse { 0.0f, 0.0f };
-
     W3DN_ErrorCode errCode;
 
     W3DN_BufferLock* lock = context->DBOLock(&errCode, fragmentDbo, 0 /* readOffset */, 0 /* readSize */);
@@ -337,23 +332,9 @@ void NovaContext::UpdateFragmentDBO() const
 
     FragmentShaderData* data = reinterpret_cast<FragmentShaderData *>(lock->buffer);
 
-    data->dimensions.x = fx * width; // 1.0f / width * fw;
-    data->dimensions.y = fy * height; // 1.0f / height * fh;
-
-    data->point.x = (position.x - width / 2.0f) * fx + lastPoint.x / zoom; //- 2.5f / zoom;
-    data->point.y = (position.y - height / 2.0f) * fy + lastPoint.y / zoom; //- 1.0f / zoom;
-
     data->iterations = iterations;
 
-    if (position.x != lastMouse.x || position.y != lastMouse.y) {
-        lastPoint = data->point;
-    }
-
     errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(FragmentShaderData));
-
-    lastMouse = position;
-
-    //printf("%f, %f\n", lastPoint.x, lastPoint.y);
 
     ThrowOnError(errCode, "Failed to unlock data buffer object (fragment)");
 }
@@ -516,6 +497,11 @@ void NovaContext::SetPosition(const Vertex& pos)
 void NovaContext::SetZoom(const float z)
 {
     zoom = z;
+}
+
+void NovaContext::Reset()
+{
+    oldPosition = { 0.0f, 0.0f };
 }
 
 } // fractal-nova

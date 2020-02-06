@@ -89,6 +89,12 @@ int main(void)
                     window.refresh = true;
                     window.resize = false;
                 }
+
+                if (window.reset) {
+                    context.Reset();
+                    window.refresh = true;
+                    window.reset = false;
+                }
             }
 
             if (window.refresh) {

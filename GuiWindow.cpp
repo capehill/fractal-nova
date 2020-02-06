@@ -11,7 +11,7 @@ namespace fractalnova {
 namespace {
     constexpr int width { 800 };
     constexpr int height { 600 };
-    constexpr float zoomStep { 0.5f };
+    constexpr float zoomStep { 1.0f };
     constexpr const char* const name { "Fractal Nova" };
 }
 
@@ -25,7 +25,8 @@ GuiWindow::GuiWindow()
         WA_CloseGadget, TRUE,
         WA_DragBar, TRUE,
         WA_DepthGadget, TRUE,
-        WA_IDCMP, IDCMP_REFRESHWINDOW | IDCMP_NEWSIZE | IDCMP_CLOSEWINDOW | IDCMP_MOUSEBUTTONS | IDCMP_EXTENDEDMOUSE | IDCMP_RAWKEY,
+        WA_Flags, WFLG_REPORTMOUSE,
+        WA_IDCMP, IDCMP_REFRESHWINDOW | IDCMP_NEWSIZE | IDCMP_CLOSEWINDOW | IDCMP_MOUSEBUTTONS | IDCMP_MOUSEMOVE | IDCMP_DELTAMOVE | IDCMP_EXTENDEDMOUSE | IDCMP_RAWKEY,
         WA_InnerWidth, width,
         WA_InnerHeight, height,
         WA_MaxHeight, 2048,
@@ -36,7 +37,7 @@ GuiWindow::GuiWindow()
         WA_SizeGadget, TRUE,
         TAG_DONE);
 
-    position = { width / 2.0f, height / 2.0f }; // TODO: resize
+    //position = { width / 2.0f, height / 2.0f }; // TODO: resize
 }
 
 GuiWindow::~GuiWindow()
@@ -70,18 +71,35 @@ bool GuiWindow::Run()
                 switch (msg->Code & ~IECODE_UP_PREFIX) {
                     case IECODE_LBUTTON:
                         if (!(msg->Code & IECODE_UP_PREFIX)) {
-                             //printf("%u, %u\n", msg->MouseX, msg->MouseY);
-                             position.x = msg->MouseX - window->BorderLeft;
-                             position.y = msg->MouseY - window->BorderTop;
-                             refresh = true;
+                            //printf("%u, %u\n", msg->MouseX, msg->MouseY);
+                            //position.x = msg->MouseX - window->BorderLeft;
+                            //position.y = msg->MouseY - window->BorderTop;
+                            //puts("panning");
+                            refresh = true;
+                            panning = true;
+                        } else {
+                            //puts("no pan");
+                            panning = false;
                         }
                         break;
+                }
+                break;
+            case IDCMP_MOUSEMOVE:
+                if (panning) {
+                    position.x = msg->MouseX / static_cast<float>(width / 2);
+                    position.y = msg->MouseY / static_cast<float>(height / 2);
+                    //printf("move %f, %f\n", position.x, position.y);
+                    refresh = true;
+                } else {
+                    position = { 0.0f, 0.0f };
                 }
                 break;
             case IDCMP_NEWSIZE:
                 resize = true;
                 break;
             case IDCMP_RAWKEY:
+                // TODO: cursor panning
+                // TODO: faster zooming
                 if (msg->Code <= 127) {
                     switch (msg->Code) {
                         case RAWKEY_ESC:
@@ -89,8 +107,11 @@ bool GuiWindow::Run()
                             break;
                         case RAWKEY_SPACE:
                             zoom = 1.0f;
-                            // TODO: should reset position
-                            refresh = true;
+                            reset = true;
+                            break;
+                        case RAWKEY_CRSRLEFT:
+                            break;
+                        case RAWKEY_CRSRRIGHT:
                             break;
                         case RAWKEY_CRSRUP:
                             ZoomIn();

@@ -37,6 +37,7 @@ struct NovaContext
 
     void SetPosition(const Vertex& position);
     void SetZoom(float zoom);
+    void Reset();
 
     BitMap* backBuffer { nullptr };
     W3DN_Context* context { nullptr };
@@ -63,6 +64,7 @@ struct NovaContext
 
     float zoom { 1.0f };
     Vertex position { };
+    mutable Vertex oldPosition { };
 };
 
 } // fractalnova

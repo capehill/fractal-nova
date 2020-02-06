@@ -16,6 +16,7 @@ struct GuiWindow
 
     Vertex GetPosition() const;
     float GetZoom() const;
+
     void ZoomIn();
     void ZoomOut();
 
@@ -23,6 +24,9 @@ struct GuiWindow
 
     mutable bool resize { false };
     mutable bool refresh { true };
+    mutable bool reset { false };
+
+    bool panning { false };
 
     Vertex position { };
     float zoom { 1.0f };
