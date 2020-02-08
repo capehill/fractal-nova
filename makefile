@@ -12,7 +12,7 @@ shaders/mandelbrot.frag.spv
 OBJS=main.o GuiWindow.o NovaContext.o Timer.o Palette.o
 DEPS = $(OBJS:.o=.d) 
 
-$(NAME): $(OBJS) $(SHADERS)
+$(NAME)_debug: $(OBJS) $(SHADERS)
 	g++ -o $@ $(OBJS) $(LDFLAGS)
 
 %.o: %.cpp
@@ -32,7 +32,7 @@ clean:
 	delete $(OBJS) $(SHADERS)
 
 strip:
-	strip $(NAME)
+	strip $(NAME)_debug -o $(NAME)
 
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPS)
