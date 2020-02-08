@@ -36,8 +36,8 @@ void ParseArgs()
         printf("VSYNC [%s]\n", params.vsync ? "on" : "off");
         if (params.iter) {
             iterations = *params.iter;
-            if (iterations < 10) {
-                iterations = 10;
+            if (iterations < 20) {
+                iterations = 20;
             } else if (iterations > 1000) {
                 iterations = 1000;
             }
@@ -103,6 +103,7 @@ int main(void)
                 context.SetZoom(zoom);
                 context.SetPosition(window.GetPosition());
                 window.ClearPosition();
+                context.Clear();
                 context.Draw();
                 context.SwapBuffers();
                 //window.refresh = false;
