@@ -5,12 +5,11 @@
 #include <libraries/keymap.h>
 
 #include <cstdio>
+#include <stdexcept>
 
 namespace fractalnova {
 
 namespace {
-    constexpr int width { 800 };
-    constexpr int height { 600 };
     constexpr float zoomStep { 1.0f };
     constexpr const char* const name { "Fractal Nova" };
 }
@@ -37,7 +36,9 @@ GuiWindow::GuiWindow()
         WA_SizeGadget, TRUE,
         TAG_DONE);
 
-    //position = { width / 2.0f, height / 2.0f }; // TODO: resize
+    if (!window) {
+        throw std::runtime_error("Failed to open window");
+    }
 }
 
 GuiWindow::~GuiWindow()
@@ -53,6 +54,8 @@ bool GuiWindow::Run()
     IntuiMessage* msg;
 
     bool running { true };
+
+    position = { 0.0f, 0.0f };
 
     while ((msg = (struct IntuiMessage *)IExec->GetMsg(window->UserPort))) {
         switch (msg->Class) {
@@ -72,13 +75,9 @@ bool GuiWindow::Run()
                     case IECODE_LBUTTON:
                         if (!(msg->Code & IECODE_UP_PREFIX)) {
                             //printf("%u, %u\n", msg->MouseX, msg->MouseY);
-                            //position.x = msg->MouseX - window->BorderLeft;
-                            //position.y = msg->MouseY - window->BorderTop;
-                            //puts("panning");
                             refresh = true;
                             panning = true;
                         } else {
-                            //puts("no pan");
                             panning = false;
                         }
                         break;
@@ -86,20 +85,23 @@ bool GuiWindow::Run()
                 break;
             case IDCMP_MOUSEMOVE:
                 if (panning) {
-                    position.x = msg->MouseX / static_cast<float>(width / 2);
-                    position.y = msg->MouseY / static_cast<float>(height / 2);
-                    //printf("move %f, %f\n", position.x, position.y);
+                    position.x += msg->MouseX / static_cast<float>(width/2) / zoom;
+                    position.y += msg->MouseY / static_cast<float>(height/2) / zoom;
                     refresh = true;
-                } else {
-                    position = { 0.0f, 0.0f };
                 }
                 break;
             case IDCMP_NEWSIZE:
+                if ((IIntuition->GetWindowAttrs(window,
+                    WA_InnerWidth, &width,
+                    WA_InnerHeight, &height,
+                    TAG_DONE)) != 0)
+                {
+                    throw std::runtime_error("Failed to get window attributes");
+                }
                 resize = true;
                 break;
             case IDCMP_RAWKEY:
                 // TODO: cursor panning
-                // TODO: faster zooming
                 if (msg->Code <= 127) {
                     switch (msg->Code) {
                         case RAWKEY_ESC:
@@ -118,6 +120,17 @@ bool GuiWindow::Run()
                             break;
                         case RAWKEY_CRSRDOWN:
                             ZoomOut();
+                            break;
+                        case RAWKEY_LSHIFT:
+                        case RAWKEY_RSHIFT:
+                            fastZoom = true;
+                            break;
+                    }
+                } else {
+                    switch (msg->Code & 0x7F) {
+                        case RAWKEY_LSHIFT:
+                        case RAWKEY_RSHIFT:
+                            fastZoom = false;
                             break;
                     }
                 }
@@ -146,6 +159,11 @@ Vertex GuiWindow::GetPosition() const
     return position;
 }
 
+void GuiWindow::ClearPosition()
+{
+    position = { 0.0f, 0.0f };
+}
+
 float GuiWindow::GetZoom() const
 {
     return zoom;
@@ -153,20 +171,30 @@ float GuiWindow::GetZoom() const
 
 void GuiWindow::ZoomIn()
 {
-    zoom += zoomStep;
+    zoom += fastZoom ? 10 * zoomStep : zoomStep;
     refresh = true;
 }
 
 void GuiWindow::ZoomOut()
 {
-    zoom -= zoomStep;
+    zoom -= fastZoom ? 10 * zoomStep : zoomStep;
 
     if (zoom <= 0.0f) {
         puts("Cannot zoom further");
-        zoom = zoomStep;
+        zoom = 1.0f;
     }
 
     refresh = true;
+}
+
+uint32 GuiWindow::Width() const
+{
+    return width;
+}
+
+uint32 GuiWindow::Height() const
+{
+    return height;
 }
 
 } // fractalnova

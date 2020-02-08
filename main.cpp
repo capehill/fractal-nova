@@ -98,8 +98,11 @@ int main(void)
             }
 
             if (window.refresh) {
-                context.SetZoom(window.GetZoom());
+                const float zoom = window.GetZoom();
+
+                context.SetZoom(zoom);
                 context.SetPosition(window.GetPosition());
+                window.ClearPosition();
                 context.Draw();
                 context.SwapBuffers();
                 //window.refresh = false;
@@ -108,7 +111,7 @@ int main(void)
                 const double passed = timer.TicksToSeconds(now - fpsTicks);
                 if (passed >= 1.0) {
                     static char buffer[64];
-                    snprintf(buffer, sizeof(buffer), "FPS %.1f", (frames - lastFrames) / passed);
+                    snprintf(buffer, sizeof(buffer), "FPS %.1f, zoom %.1f", (frames - lastFrames) / passed, zoom);
                     window.SetTitle(buffer);
                     fpsTicks = now;
                     lastFrames = frames;

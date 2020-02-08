@@ -303,9 +303,11 @@ void NovaContext::UpdateVertexDBO() const
     data->zoom = zoom;
     data->point = { position.x + oldPosition.x, position.y + oldPosition.y };
 
+#if 0
     if (oldPosition.x != data->point.x || oldPosition.y != data->point.y) {
         printf("%f, %f\n", oldPosition.x, oldPosition.y);
     }
+#endif
 
     oldPosition = data->point;
 
@@ -344,8 +346,11 @@ void NovaContext::CreateTexture()
     Palette palette { 4 * 256 };
 
     palette.Add( {   0,   0,   0, 255 }, 1.0f );
-    palette.Add( {   0,   0, 255, 255 }, 4.0f );
+    palette.Add( {   0,   0, 255, 255 }, 8.0f );
+    palette.Add( { 255,   0, 255, 255 }, 8.0f );
     palette.Add( { 255, 255, 255, 255 }, 8.0f );
+    palette.Add( {   0, 255, 0,   255 }, 8.0f );
+    palette.Add( {   0,   0, 255, 255 }, 8.0f );
 
     auto colors = palette.Create();
 
@@ -377,13 +382,8 @@ void NovaContext::CreateTexture()
 
 void NovaContext::Resize()
 {
-    if ((IIntuition->GetWindowAttrs(window.window,
-        WA_InnerWidth, &width,
-        WA_InnerHeight, &height,
-        TAG_DONE)) != 0)
-    {
-        throw std::runtime_error("Failed to get window dimensions");
-    }
+    width = window.Width();
+    height = window.Height();
 
     if (!backBuffer ||
         IGraphics->GetBitMapAttr(backBuffer, BMA_ACTUALWIDTH) < width ||
@@ -414,8 +414,6 @@ void NovaContext::Resize()
     ThrowOnError(errCode, "Failed to set viewport");
 
     printf("Viewport %lu * %lu\n", width, height);
-
-    //position = { width / 2.0f, height / 2.0f };
 }
 
 // Not used at the moment
