@@ -345,12 +345,23 @@ void NovaContext::CreateTexture()
 {
     Palette palette { 4 * 256 };
 
+#if 1
+    palette.Add( {   0,   0,   0 }, 1.0f );
+    palette.Add( { 255,   0,   0 }, 1.0f );
+    palette.Add( { 255, 127,   0 }, 1.0f );
+    palette.Add( { 255, 255,   0 }, 1.0f );
+    palette.Add( {   0, 255,   0 }, 1.0f );
+    palette.Add( {   0,   0, 255 }, 1.0f );
+    palette.Add( {  75,   0, 130 }, 1.0f );
+    palette.Add( { 148,   0, 211 }, 1.0f );
+#else
     palette.Add( {   0,   0,   0, 255 }, 1.0f );
     palette.Add( {   0,   0, 255, 255 }, 8.0f );
     palette.Add( { 255,   0, 255, 255 }, 8.0f );
     palette.Add( { 255, 255, 255, 255 }, 8.0f );
     palette.Add( {   0, 255, 0,   255 }, 8.0f );
     palette.Add( {   0,   0, 255, 255 }, 8.0f );
+#endif
 
     auto colors = palette.Create();
 
