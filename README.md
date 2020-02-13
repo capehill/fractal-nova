@@ -17,10 +17,13 @@ Press ESC key to quit.
 ## Command-line parameters
 
 ITER/N (20-1000): iteration depth.
-VSYNC: limit the drawing speed.
+VSYNC/S: limit the drawing speed.
+LAZYCLEAR/S: clear backbuffer only once per second. Clearing is only necessary when user pans outside of the fractal area.
 
 ## TODO
 
+Menu system.
 More fractals.
 More colour schemes.
+Effects?
 

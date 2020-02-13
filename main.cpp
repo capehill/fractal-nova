@@ -14,26 +14,29 @@ namespace {
     constexpr bool verboseMode { false };
     constexpr double eventPeriod { 1.0 / 60 };
 
-    static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 0.1 (02.02.2020)" };
+    static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 0.2 (13.02.2020)" };
 }
 
 struct Params {
     LONG vsync;
     LONG* iter;
+    LONG lazyClear;
 };
 
-static Params params { 0, nullptr };
+static Params params { 0, nullptr, 0 };
 
 static int32 iterations { 100 };
 
 void ParseArgs()
 {
-    const char* const pattern = "VSYNC/S,ITER/N";
+    const char* const pattern = "VSYNC/S,ITER/N,LAZYCLEAR/S";
 
     struct RDArgs *result = IDOS->ReadArgs(pattern, (int32 *)&params, NULL);
 
     if (result) {
         printf("VSYNC [%s]\n", params.vsync ? "on" : "off");
+        printf("Lazy clear [%s]\n", params.lazyClear ? "on" : "off");
+
         if (params.iter) {
             iterations = *params.iter;
             if (iterations < 20) {
@@ -103,7 +106,9 @@ int main(void)
                 context.SetZoom(zoom);
                 context.SetPosition(window.GetPosition());
                 window.ClearPosition();
-                context.Clear();
+                if (!fractalnova::params.lazyClear) {
+                    context.Clear();
+                }
                 context.Draw();
                 context.SwapBuffers();
                 //window.refresh = false;
@@ -113,6 +118,9 @@ int main(void)
                 if (passed >= 1.0) {
                     static char buffer[64];
                     snprintf(buffer, sizeof(buffer), "FPS %.1f, zoom %.1f", (frames - lastFrames) / passed, zoom);
+                    if (fractalnova::params.lazyClear) {
+                        context.Clear();
+                    }
                     window.SetTitle(buffer);
                     fpsTicks = now;
                     lastFrames = frames;
