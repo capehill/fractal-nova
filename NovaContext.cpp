@@ -239,6 +239,17 @@ void NovaContext::CreateVBO()
     errCode = context->BufferUnlock(lock, 0, lock->size);
 
     ThrowOnError(errCode, "Failed to unlock vertex buffer object");
+
+    constexpr uint32 posAttributeIndex { 0 };
+    constexpr uint32 texCoordAttributeIndex { 0 };
+
+    errCode = context->BindVertexAttribArray(nullptr, posArrayIndex, vbo, posAttributeIndex);
+
+    ThrowOnError(errCode, "Failed to bind vertex attribute array (pos)");
+
+    errCode = context->BindVertexAttribArray(nullptr, texCoordArrayIndex, vbo, texCoordAttributeIndex);
+
+    ThrowOnError(errCode, "Failed to bind vertex attribute array (texCoord)");
 }
 
 void NovaContext::CreateDBO()
@@ -439,21 +450,10 @@ void NovaContext::Clear() const
 
 void NovaContext::Draw() const
 {
-    constexpr uint32 posAttributeIndex { 0 };
-    constexpr uint32 texCoordAttributeIndex { 0 };
-
-    W3DN_ErrorCode errCode = context->BindVertexAttribArray(nullptr, posArrayIndex, vbo, posAttributeIndex);
-
-    ThrowOnError(errCode, "Failed to bind vertex attribute array (pos)");
-
-    errCode = context->BindVertexAttribArray(nullptr, texCoordArrayIndex, vbo, texCoordAttributeIndex);
-
-    ThrowOnError(errCode, "Failed to bind vertex attribute array (texCoord)");
-
     UpdateVertexDBO();
     UpdateFragmentDBO();
 
-    errCode = context->DrawArrays(nullptr, W3DN_PRIM_TRISTRIP, 0 /* base */, vertexCount);
+    const W3DN_ErrorCode errCode = context->DrawArrays(nullptr, W3DN_PRIM_TRISTRIP, 0 /* base */, vertexCount);
 
     ThrowOnError(errCode, "Failed to draw arrays");
 }
