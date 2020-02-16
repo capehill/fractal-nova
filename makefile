@@ -7,7 +7,9 @@ SHADERS= \
 shaders/simple.vert.spv \
 shaders/simple.frag.spv \
 shaders/mandelbrot.vert.spv \
-shaders/mandelbrot.frag.spv
+shaders/mandelbrot.frag.spv \
+shaders/julia.vert.spv \
+shaders/julia.frag.spv
 
 OBJS=main.o GuiWindow.o NovaContext.o Timer.o Palette.o
 DEPS = $(OBJS:.o=.d) 
