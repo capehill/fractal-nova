@@ -11,7 +11,7 @@ shaders/mandelbrot.frag.spv \
 shaders/julia.vert.spv \
 shaders/julia.frag.spv
 
-OBJS=main.o GuiWindow.o NovaContext.o Timer.o Palette.o
+OBJS=main.o GuiWindow.o NovaContext.o Timer.o Palette.o NovaObject.o Texture.o DataBuffer.o Shader.o VertexBuffer.o Program.o BackBuffer.o
 DEPS = $(OBJS:.o=.d) 
 
 $(NAME)_debug: $(OBJS) $(SHADERS)
