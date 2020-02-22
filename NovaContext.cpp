@@ -12,7 +12,6 @@
 #include <cmath>
 
 // TODO: display coordinate/zoom on window title?
-// TODO: shader, texture, vbo, dbo classes?
 
 namespace fractalnova {
 
@@ -37,106 +36,50 @@ namespace {
 struct Warp3DNovaIFace* IW3DNova;
 static struct Library* NovaBase;
 
-NovaContext::NovaContext(const GuiWindow& window, const bool verbose, const bool vsync, const int iterations)
-    : window(window), verbose(verbose), vsync(vsync), iterations(iterations)
+NovaObject::NovaObject(W3DN_Context* context): context(context)
 {
-    NovaBase = IExec->OpenLibrary("Warp3DNova.library", 1);
-
-    if (NovaBase) {
-        IW3DNova = (struct Warp3DNovaIFace *)IExec->GetInterface(NovaBase, "main", 1, nullptr);
-    }
-
-    if (!IW3DNova) {
-        CloseLib();
-        throw std::runtime_error("Failed to open Warp3DNova.library");
-    }
-
-    W3DN_ErrorCode errCode;
-    context = IW3DNova->W3DN_CreateContextTags(&errCode, W3DNTag_Screen, nullptr, TAG_DONE);
-
-    if (!context) {
-        ThrowOnError(errCode, "Failed to create Nova context");
-    }
-
-    Resize();
 }
 
-NovaContext::~NovaContext()
+std::string NovaObject::ErrorToString(W3DN_ErrorCode errCode) const
 {
-    if (texture) {
-        context->BindTexture(nullptr, 0, nullptr, nullptr);
-        context->DestroyTexture(texture);
-        texture = nullptr;
-    }
+    return IW3DNova->W3DN_GetErrorString(errCode);
+}
 
-    if (vertexDbo) {
-        context->BindShaderDataBuffer(nullptr, W3DNST_VERTEX, nullptr, 0);
-        context->DestroyDataBufferObject(vertexDbo);
-        vertexDbo = nullptr;
-    }
-
-    if (fragmentDbo) {
-        context->BindShaderDataBuffer(nullptr, W3DNST_FRAGMENT, nullptr, 0);
-        context->DestroyDataBufferObject(fragmentDbo);
-        fragmentDbo = nullptr;
-    }
-
-    if (vbo) {
-        context->BindVertexAttribArray(nullptr, 0 /* attribNum*/, nullptr, 0 /* arrayIdx */);
-        context->BindVertexAttribArray(nullptr, 1 /* attribNum*/, nullptr, 0 /* arrayIdx */);
-        context->DestroyVertexBufferObject(vbo);
-        vbo = nullptr;
-    }
-
-    if (shaderPipeline) {
-        context->SetShaderPipeline(nullptr, nullptr);
-        context->DestroyShaderPipeline(shaderPipeline);
-        shaderPipeline = nullptr;
-    }
-
-    if (fragmentShader) {
-        context->DestroyShader(fragmentShader);
-        fragmentShader = nullptr;
-    }
-
-    if (vertexShader) {
-        context->DestroyShader(vertexShader);
-        vertexShader = nullptr;
-    }
-
-    if (context) {
-        context->Destroy();
-        context = nullptr;
-    }
-
-    if (IW3DNova) {
-        IExec->DropInterface((struct Interface *)IW3DNova);
-        IW3DNova = nullptr;
-    }
-
-    CloseLib();
-
-    if (backBuffer) {
-        IGraphics->FreeBitMap(backBuffer);
-        backBuffer = nullptr;
+void NovaObject::ThrowOnError(W3DN_ErrorCode errCode, const std::string& message) const
+{
+    if (errCode != W3DNEC_SUCCESS) {
+        throw std::runtime_error(message + ": " + ErrorToString(errCode));
     }
 }
 
-void NovaContext::CloseLib()
+Shader::Shader(W3DN_Context* context, W3DN_ShaderType shaderType, const bool verbose): NovaObject(context), verbose(verbose)
 {
-    if (NovaBase) {
-        IExec->CloseLibrary(NovaBase);
-        NovaBase = nullptr;
+    if (shaderType == W3DNST_VERTEX) {
+        dbo = std::make_unique<DataBuffer>(context, W3DNST_VERTEX, sizeof(VertexShaderData), shader);
+    } else if (shaderType == W3DNST_FRAGMENT) {
+        dbo = std::make_unique<DataBuffer>(context, W3DNST_FRAGMENT, sizeof(FragmentShaderData), shader);
+    } else {
+        throw std::runtime_error("Unknown shader type");
     }
 }
 
-W3DN_Shader* NovaContext::CompileShader(const std::string& fileName)
+Shader::~Shader()
+{
+    if (shader) {
+        context->DestroyShader(shader);
+        shader = nullptr;
+    }
+
+    dbo.reset();
+}
+
+void Shader::Compile(const std::string& fileName)
 {
     W3DN_ErrorCode errCode;
     const char* shaderLog = nullptr;
     const std::string shaderPath = "shaders/" + fileName;
 
-    W3DN_Shader* shader = context->CompileShaderTags(&errCode,
+    shader = context->CompileShaderTags(&errCode,
         W3DNTag_FileName, shaderPath.c_str(),
         W3DNTag_Log, &shaderLog,
         W3DNTag_LogLevel, verbose ? W3DNLL_DEBUG : W3DNLL_INFO,
@@ -157,36 +100,83 @@ W3DN_Shader* NovaContext::CompileShader(const std::string& fileName)
         printf("%s compilation log:\n%s\n", fileName.c_str(), shaderLog);
         context->DestroyShaderLog(shaderLog);
     }
-
-    return shader;
 }
 
-void NovaContext::LoadShaders()
+void Shader::UpdateVertexDBO(Program* program) const // -> DataBuffer? Or Program?
 {
-#if 0
-    vertexShader = CompileShader("simple.vert.spv");
-    fragmentShader = CompileShader("simple.frag.spv");
-#else
-    vertexShader = CompileShader("mandelbrot.vert.spv");
-    fragmentShader = CompileShader("mandelbrot.frag.spv");
-#endif
-
     W3DN_ErrorCode errCode;
-    shaderPipeline = context->CreateShaderPipelineTags(&errCode,
-        W3DNTag_Shader, vertexShader,
-        W3DNTag_Shader, fragmentShader,
-        TAG_DONE);
 
-    if (!shaderPipeline) {
-        ThrowOnError(errCode, "Failed to create shader pipeline");
+    static float angle = 0.0f;
+
+    W3DN_BufferLock* lock = context->DBOLock(&errCode, dbo->dbo, 0 /* readOffset */, 0 /* readSize */);
+
+    if (!lock) {
+        ThrowOnError(errCode, "Failed to lock data buffer object (vertex)");
     }
 
-    errCode = context->SetShaderPipeline(nullptr, shaderPipeline);
+    VertexShaderData* data = reinterpret_cast<VertexShaderData *>(lock->buffer);
 
-    ThrowOnError(errCode, "Failed to set shader pipeline");
+    data->angle = angle * toRadians;
+    data->zoom = program->zoom;
+    data->point = { program->position.x + program->oldPosition.x, program->position.y + program->oldPosition.y };
+
+#if 0
+    if (oldPosition.x != data->point.x || oldPosition.y != data->point.y) {
+        printf("%f, %f\n", oldPosition.x, oldPosition.y);
+    }
+#endif
+
+    program->oldPosition = data->point;
+
+    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(VertexShaderData));
+
+    ThrowOnError(errCode, "Failed to unlock data buffer object (vertex)");
+
+    //angle += 1.0f;
+
+    if (angle >= 360.0f) {
+        angle = 0.0f;
+    }
 }
 
-void NovaContext::CreateVBO()
+void Shader::UpdateFragmentDBO(Program* program) const // -> DataBuffer?
+{
+    W3DN_ErrorCode errCode;
+
+#if 0
+    static int iter = 0;
+
+    if (++iter > iterations) {
+        iter = 20;
+    }
+#endif
+
+    W3DN_BufferLock* lock = context->DBOLock(&errCode, dbo->dbo, 0 /* readOffset */, 0 /* readSize */);
+
+    if (!lock) {
+        ThrowOnError(errCode, "Failed to lock data buffer object (fragment)");
+    }
+
+    FragmentShaderData* data = reinterpret_cast<FragmentShaderData *>(lock->buffer);
+
+    data->iterations = program->iterations;
+
+    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(FragmentShaderData));
+
+    ThrowOnError(errCode, "Failed to unlock data buffer object (fragment)");
+}
+
+VertexBuffer::~VertexBuffer()
+{
+    if (vbo) {
+        context->BindVertexAttribArray(nullptr, 0 /* attribNum*/, nullptr, 0 /* arrayIdx */);
+        context->BindVertexAttribArray(nullptr, 1 /* attribNum*/, nullptr, 0 /* arrayIdx */);
+        context->DestroyVertexBufferObject(vbo);
+        vbo = nullptr;
+    }
+}
+
+VertexBuffer::VertexBuffer(W3DN_Context* context): NovaObject(context)
 {
     constexpr uint32 arrayCount { 2 };
 
@@ -252,104 +242,211 @@ void NovaContext::CreateVBO()
     ThrowOnError(errCode, "Failed to bind vertex attribute array (texCoord)");
 }
 
-void NovaContext::CreateDBO()
+DataBuffer::~DataBuffer()
 {
-    CreateVertexDBO();
-    CreateFragmentDBO();
-}
-
-void NovaContext::CreateVertexDBO()
-{
-    W3DN_ErrorCode errCode;
-
-    vertexDbo = context->CreateDataBufferObjectTags(&errCode, sizeof(VertexShaderData), W3DN_STREAM_DRAW, 1,
-        TAG_DONE);
-
-    ThrowOnError(errCode, "Failed to create data buffer object (vertex)");
-
-    context->DBOSetBufferTags(vertexDbo, 0 /* bufferIdx */, 0 /* offset */, sizeof(VertexShaderData), vertexShader,
-        TAG_DONE);
-
-    ThrowOnError(errCode, "Failed to set data buffer object (vertex)");
-
-    context->BindShaderDataBuffer(nullptr, W3DNST_VERTEX, vertexDbo, 0 /* bufferIdx */);
-
-    ThrowOnError(errCode, "Failed to bind data buffer object (vertex)");
-}
-
-void NovaContext::CreateFragmentDBO()
-{
-    W3DN_ErrorCode errCode;
-
-    fragmentDbo = context->CreateDataBufferObjectTags(&errCode, sizeof(FragmentShaderData), W3DN_STREAM_DRAW, 1,
-        TAG_DONE);
-
-    ThrowOnError(errCode, "Failed to create data buffer object (fragment)");
-
-    context->DBOSetBufferTags(fragmentDbo, 0 /* bufferIdx */, 0 /* offset */, sizeof(FragmentShaderData), fragmentShader,
-        TAG_DONE);
-
-    ThrowOnError(errCode, "Failed to set data buffer object (fragment)");
-
-    context->BindShaderDataBuffer(nullptr, W3DNST_FRAGMENT, fragmentDbo, 0 /* bufferIdx */);
-
-    ThrowOnError(errCode, "Failed to bind data buffer object (fragment)");
-}
-
-void NovaContext::UpdateVertexDBO() const
-{
-    W3DN_ErrorCode errCode;
-
-    static float angle = 0.0f;
-
-    W3DN_BufferLock* lock = context->DBOLock(&errCode, vertexDbo, 0 /* readOffset */, 0 /* readSize */);
-
-    if (!lock) {
-        ThrowOnError(errCode, "Failed to lock data buffer object (vertex)");
+    if (dbo) {
+        context->BindShaderDataBuffer(nullptr, shaderType, nullptr, 0);
+        context->DestroyDataBufferObject(dbo);
+        dbo = nullptr;
     }
+}
 
-    VertexShaderData* data = reinterpret_cast<VertexShaderData *>(lock->buffer);
+DataBuffer::DataBuffer(W3DN_Context* context, const W3DN_ShaderType shaderType, const std::size_t size, W3DN_Shader* shader): NovaObject(context), shaderType(shaderType)
+{
+    W3DN_ErrorCode errCode;
 
-    data->angle = angle * toRadians;
-    data->zoom = zoom;
-    data->point = { position.x + oldPosition.x, position.y + oldPosition.y };
+    dbo = context->CreateDataBufferObjectTags(&errCode, size, W3DN_STREAM_DRAW, 1,
+        TAG_DONE);
+
+    ThrowOnError(errCode, "Failed to create data buffer object");
+
+    context->DBOSetBufferTags(dbo, 0 /* bufferIdx */, 0 /* offset */, size, shader,
+        TAG_DONE);
+
+    ThrowOnError(errCode, "Failed to set data buffer object");
+
+    context->BindShaderDataBuffer(nullptr, shaderType, dbo, 0 /* bufferIdx */);
+
+    ThrowOnError(errCode, "Failed to bind data buffer object");
+}
+
+Texture::Texture(W3DN_Context* context, const std::vector<Color>& colors): NovaObject(context)
+{
+    W3DN_ErrorCode errCode;
+
+    texture = context->CreateTexture(&errCode, W3DN_TEXTURE_2D, W3DNPF_RGBA, W3DNEF_UINT8,
+        colors.size(), 1, 1 /* depth */, FALSE /* mipmapped*/, W3DN_STATIC_DRAW);
+
+    ThrowOnError(errCode, "Failed to create texture");
+
+    errCode = context->TexUpdateImage(texture, const_cast<Color*>(colors.data()), 0 /* level */, 0 /* arrayIdx */, sizeof(Color) * colors.size(), 0 /* srcRowsPerLayer */);
+
+    ThrowOnError(errCode, "Failed to update texture");
+
+    sampler = context->CreateTexSampler(&errCode);
+
+    ThrowOnError(errCode, "Failed to create texture sampler");
+
+    errCode = context->TSSetParametersTags(sampler,
+        W3DN_TEXTURE_MIN_FILTER, textureFiltering ? W3DN_LINEAR : W3DN_NEAREST,
+        TAG_DONE);
+
+    ThrowOnError(errCode, "Failed to set texture sampler parameters");
+
+    context->BindTexture(nullptr, 0 /* texture unit */, texture, sampler);
+
+    ThrowOnError(errCode, "Failed to bind texture");
+}
+
+Texture::~Texture()
+{
+    if (texture) {
+        context->BindTexture(nullptr, 0, nullptr, nullptr);
+        context->DestroyTexture(texture);
+        texture = nullptr;
+    }
+}
+
+BackBuffer::BackBuffer(uint32 width, uint32 height, BitMap* friendBitMap)
+{
+    bitMap = IGraphics->AllocBitMapTags(width, height, 0,
+        BMATags_Friend, friendBitMap,
+        BMATags_Displayable, TRUE,
+        TAG_DONE);
+
+    printf("Bitmap size %lu * %lu\n", width, height);
+
+    if (!bitMap) {
+        throw std::runtime_error("Failed to allocate bitmap");
+    }
+}
+
+BackBuffer::~BackBuffer()
+{
+    if (bitMap) {
+        IGraphics->FreeBitMap(bitMap);
+        bitMap = nullptr;
+    }
+}
+
+Program::Program(W3DN_Context* context, const bool verbose, const int iterations): NovaObject(context), iterations(iterations)
+{
+    vertexShader = std::make_unique<Shader>(context, W3DNST_VERTEX, verbose);
+    fragmentShader = std::make_unique<Shader>(context, W3DNST_FRAGMENT, verbose);
 
 #if 0
-    if (oldPosition.x != data->point.x || oldPosition.y != data->point.y) {
-        printf("%f, %f\n", oldPosition.x, oldPosition.y);
-    }
+    vertexShader = CompileShader("simple.vert.spv");
+    fragmentShader = CompileShader("simple.frag.spv");
+#else
+#if 1
+    vertexShader->Compile("julia.vert.spv");
+    fragmentShader->Compile("julia.frag.spv");
+#else
+    vertexShader = CompileShader("mandelbrot.vert.spv");
+    fragmentShader = CompileShader("mandelbrot.frag.spv");
+#endif
 #endif
 
-    oldPosition = data->point;
+    W3DN_ErrorCode errCode;
+    shaderPipeline = context->CreateShaderPipelineTags(&errCode,
+        W3DNTag_Shader, vertexShader->shader,
+        W3DNTag_Shader, fragmentShader->shader,
+        TAG_DONE);
 
-    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(VertexShaderData));
-
-    ThrowOnError(errCode, "Failed to unlock data buffer object (vertex)");
-
-    // angle += 1.0f;
-
-    if (angle >= 360.0f) {
-        angle = 0.0f;
+    if (!shaderPipeline) {
+        ThrowOnError(errCode, "Failed to create shader pipeline");
     }
+
+    errCode = context->SetShaderPipeline(nullptr, shaderPipeline);
+
+    ThrowOnError(errCode, "Failed to set shader pipeline");
+
+    vbo = std::make_unique<VertexBuffer>(context);
 }
 
-void NovaContext::UpdateFragmentDBO() const
+Program::~Program()
 {
-    W3DN_ErrorCode errCode;
+    vbo.reset();
 
-    W3DN_BufferLock* lock = context->DBOLock(&errCode, fragmentDbo, 0 /* readOffset */, 0 /* readSize */);
-
-    if (!lock) {
-        ThrowOnError(errCode, "Failed to lock data buffer object (fragment)");
+    if (shaderPipeline) {
+        context->SetShaderPipeline(nullptr, nullptr);
+        context->DestroyShaderPipeline(shaderPipeline);
+        shaderPipeline = nullptr;
     }
 
-    FragmentShaderData* data = reinterpret_cast<FragmentShaderData *>(lock->buffer);
+    vertexShader.reset();
+    fragmentShader.reset();
+}
 
-    data->iterations = iterations;
+void Program::SetPosition(const Vertex& pos)
+{
+    position = pos;
+}
 
-    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(FragmentShaderData));
+void Program::SetZoom(const float z)
+{
+    zoom = z;
+}
 
-    ThrowOnError(errCode, "Failed to unlock data buffer object (fragment)");
+void Program::Reset()
+{
+    oldPosition = { 0.0f, 0.0f };
+}
+
+NovaContext::NovaContext(const GuiWindow& window, const bool verbose, const bool vsync, const int iterations)
+    : NovaObject(nullptr), window(window), verbose(verbose), vsync(vsync)
+{
+    NovaBase = IExec->OpenLibrary("Warp3DNova.library", 1);
+
+    if (NovaBase) {
+        IW3DNova = (struct Warp3DNovaIFace *)IExec->GetInterface(NovaBase, "main", 1, nullptr);
+    }
+
+    if (!IW3DNova) {
+        CloseLib();
+        throw std::runtime_error("Failed to open Warp3DNova.library");
+    }
+
+    W3DN_ErrorCode errCode;
+    context = IW3DNova->W3DN_CreateContextTags(&errCode, W3DNTag_Screen, nullptr, TAG_DONE);
+
+    if (!context) {
+        ThrowOnError(errCode, "Failed to create Nova context");
+    }
+
+    Resize();
+
+    program = std::make_unique<Program>(context, verbose, iterations);
+
+    CreateTexture();
+}
+
+NovaContext::~NovaContext()
+{
+    texture.reset();
+    program.reset();
+
+    if (context) {
+        context->Destroy();
+        context = nullptr;
+    }
+
+    if (IW3DNova) {
+        IExec->DropInterface((struct Interface *)IW3DNova);
+        IW3DNova = nullptr;
+    }
+
+    CloseLib();
+
+    backBuffer.reset();
+}
+
+void NovaContext::CloseLib()
+{
+    if (NovaBase) {
+        IExec->CloseLibrary(NovaBase);
+        NovaBase = nullptr;
+    }
 }
 
 void NovaContext::CreateTexture()
@@ -376,30 +473,7 @@ void NovaContext::CreateTexture()
 
     auto colors = palette.Create();
 
-    W3DN_ErrorCode errCode;
-
-    texture = context->CreateTexture(&errCode, W3DN_TEXTURE_2D, W3DNPF_RGBA, W3DNEF_UINT8,
-        colors.size(), 1, 1 /* depth */, FALSE /* mipmapped*/, W3DN_STATIC_DRAW);
-
-    ThrowOnError(errCode, "Failed to create texture");
-
-    errCode = context->TexUpdateImage(texture, colors.data(), 0 /* level */, 0 /* arrayIdx */, sizeof(Color) * colors.size(), 0 /* srcRowsPerLayer */);
-
-    ThrowOnError(errCode, "Failed to update texture");
-
-    sampler = context->CreateTexSampler(&errCode);
-
-    ThrowOnError(errCode, "Failed to create texture sampler");
-
-    errCode = context->TSSetParametersTags(sampler,
-        W3DN_TEXTURE_MIN_FILTER, textureFiltering ? W3DN_LINEAR : W3DN_NEAREST,
-        TAG_DONE);
-
-    ThrowOnError(errCode, "Failed to set texture sampler parameters");
-
-    context->BindTexture(nullptr, 0 /* texture unit */, texture, sampler);
-
-    ThrowOnError(errCode, "Failed to bind texture");
+    texture = std::make_unique<Texture>(context, colors);
 }
 
 void NovaContext::Resize()
@@ -408,24 +482,14 @@ void NovaContext::Resize()
     height = window.Height();
 
     if (!backBuffer ||
-        IGraphics->GetBitMapAttr(backBuffer, BMA_ACTUALWIDTH) < width ||
-        IGraphics->GetBitMapAttr(backBuffer, BMA_HEIGHT) < height)
+        IGraphics->GetBitMapAttr(backBuffer->bitMap, BMA_ACTUALWIDTH) < width ||
+        IGraphics->GetBitMapAttr(backBuffer->bitMap, BMA_HEIGHT) < height)
     {
-        IGraphics->FreeBitMap(backBuffer);
-        backBuffer = IGraphics->AllocBitMapTags(width, height, 0,
-            BMATags_Friend, window.window->RPort->BitMap,
-            BMATags_Displayable, TRUE,
-            TAG_DONE);
-
-        printf("Bitmap size %lu * %lu\n", width, height);
-    }
-
-    if (!backBuffer) {
-        throw std::runtime_error("Failed to allocate bitmap");
+        backBuffer = std::make_unique<BackBuffer>(width, height, window.window->RPort->BitMap);
     }
 
     W3DN_ErrorCode errCode = context->FBBindBufferTags(nullptr, W3DN_FB_COLOUR_BUFFER_0,
-        W3DNTag_BitMap, backBuffer,
+        W3DNTag_BitMap, backBuffer->bitMap,
         TAG_DONE);
 
     ThrowOnError(errCode, "Failed to bind buffer to frame buffer object");
@@ -438,7 +502,6 @@ void NovaContext::Resize()
     printf("Viewport %lu * %lu\n", width, height);
 }
 
-// Not used at the moment
 void NovaContext::Clear() const
 {
     constexpr float opaqueBlack[4] { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -450,8 +513,8 @@ void NovaContext::Clear() const
 
 void NovaContext::Draw() const
 {
-    UpdateVertexDBO();
-    UpdateFragmentDBO();
+    program->vertexShader->UpdateVertexDBO(program.get() /* TODO: this is a hack to get those shader parameters */);
+    program->fragmentShader->UpdateFragmentDBO(program.get());
 
     const W3DN_ErrorCode errCode = context->DrawArrays(nullptr, W3DN_PRIM_TRISTRIP, 0 /* base */, vertexCount);
 
@@ -482,35 +545,23 @@ void NovaContext::SwapBuffers()
         IGraphics->WaitTOF();
     }
 
-    IGraphics->BltBitMapRastPort(backBuffer, 0, 0, window.window->RPort, window.window->BorderLeft,
+    IGraphics->BltBitMapRastPort(backBuffer->bitMap, 0, 0, window.window->RPort, window.window->BorderLeft,
         window.window->BorderTop, width, height, 0xC0);
-}
-
-std::string NovaContext::ErrorToString(const W3DN_ErrorCode errCode) const
-{
-    return IW3DNova->W3DN_GetErrorString(errCode);
-}
-
-void NovaContext::ThrowOnError(W3DN_ErrorCode errCode, const std::string& message) const
-{
-    if (errCode != W3DNEC_SUCCESS) {
-        throw std::runtime_error(message + ": " + ErrorToString(errCode));
-    }
 }
 
 void NovaContext::SetPosition(const Vertex& pos)
 {
-    position = pos;
+    program->SetPosition(pos);
 }
 
 void NovaContext::SetZoom(const float z)
 {
-    zoom = z;
+    program->SetZoom(z);
 }
 
 void NovaContext::Reset()
 {
-    oldPosition = { 0.0f, 0.0f };
+    program->Reset();
 }
 
 } // fractal-nova

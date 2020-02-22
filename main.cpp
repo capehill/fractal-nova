@@ -67,11 +67,6 @@ int main(void)
         fractalnova::NovaContext context { window, fractalnova::verboseMode, fractalnova::params.vsync, fractalnova::iterations };
         fractalnova::Timer timer;
 
-        context.LoadShaders();
-        context.CreateVBO();
-        context.CreateDBO();
-        context.CreateTexture();
-
         const uint64 start = timer.GetTicks();
         uint64 eventTicks = start;
         uint64 fpsTicks = start;
