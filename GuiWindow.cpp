@@ -2,7 +2,11 @@
 
 #include <proto/exec.h>
 #include <proto/intuition.h>
+
 #include <libraries/keymap.h>
+#include <libraries/gadtools.h>
+
+#include <intuition/menuclass.h>
 
 #include <cstdio>
 #include <stdexcept>
@@ -14,8 +18,77 @@ namespace {
     constexpr const char* const name { "Fractal Nova" };
 }
 
+enum EMenu {
+    MID_Iconify = 1,
+    MID_About,
+    MID_Quit,
+    MID_ResetView,
+    //
+    MID_Mandelbrot,
+    MID_Julia,
+    //
+    MID_Rainbow,
+    MID_RainbowRev
+};
+
+Object* menu;
+
 GuiWindow::GuiWindow()
 {
+    menu = IIntuition->NewObject(nullptr, "menuclass",
+        MA_Type, T_ROOT,
+        // Main
+        MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+            MA_Type, T_MENU,
+            MA_Label, "Main",
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Reset view",
+                MA_ID, MID_ResetView,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Quit",
+                MA_ID, MID_Quit,
+                TAG_DONE),
+            TAG_DONE),
+        // Fractal
+        MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+            MA_Type, T_MENU,
+            MA_Label, "Fractal",
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Manderbrot",
+                MA_ID, MID_Mandelbrot,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Julia",
+                MA_ID, MID_Julia,
+                TAG_DONE),
+            TAG_DONE),
+        // Colours
+        MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+            MA_Type, T_MENU,
+            MA_Label, "Colours",
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Rainbow",
+                MA_ID, MID_Rainbow,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Rainbow rev.",
+                MA_ID, MID_RainbowRev,
+                TAG_DONE),
+            TAG_DONE),
+        // The end
+        TAG_DONE);
+
+    if (!menu) {
+        printf("Failed to create menus\n");
+    }
+
     window = IIntuition->OpenWindowTags(nullptr,
         WA_Title, name,
         WA_ScreenTitle, name,
@@ -25,11 +98,13 @@ GuiWindow::GuiWindow()
         WA_DragBar, TRUE,
         WA_DepthGadget, TRUE,
         WA_Flags, WFLG_REPORTMOUSE,
-        WA_IDCMP, IDCMP_REFRESHWINDOW | IDCMP_NEWSIZE | IDCMP_CLOSEWINDOW | IDCMP_MOUSEBUTTONS | IDCMP_MOUSEMOVE | IDCMP_DELTAMOVE | IDCMP_EXTENDEDMOUSE | IDCMP_RAWKEY,
+        WA_IDCMP, IDCMP_REFRESHWINDOW | IDCMP_NEWSIZE | IDCMP_CLOSEWINDOW | IDCMP_MOUSEBUTTONS | IDCMP_MOUSEMOVE |
+                  IDCMP_DELTAMOVE | IDCMP_EXTENDEDMOUSE | IDCMP_RAWKEY | IDCMP_MENUPICK,
         WA_InnerWidth, width,
         WA_InnerHeight, height,
         WA_MaxHeight, 2048,
         WA_MaxWidth, 2048,
+        WA_MenuStrip, menu,
         WA_MinHeight, 200,
         WA_MinWidth, 200,
         WA_SimpleRefresh, TRUE,
@@ -69,6 +144,13 @@ bool GuiWindow::Run()
                 } else {
                     ZoomOut();
                 }
+                } break;
+            case IDCMP_MENUPICK: {
+                uint32 id = NO_MENU_ID;
+                while (((id = IIntuition->IDoMethod(reinterpret_cast<Object *>(window->MenuStrip), MM_NEXTSELECT, 0, id))) != NO_MENU_ID) {
+                    printf("ID %d\n", id);
+                }
+
                 } break;
             case IDCMP_MOUSEBUTTONS:
                 switch (msg->Code & ~IECODE_UP_PREFIX) {
