@@ -38,8 +38,6 @@ struct Shader: public NovaObject
     ~Shader();
 
     void Compile(const std::string& fileName);
-    void UpdateVertexDBO(struct Program* program) const;
-    void UpdateFragmentDBO(struct Program* program) const;
 
     std::unique_ptr<DataBuffer> dbo;
 
@@ -63,6 +61,9 @@ struct Program: public NovaObject
     void SetPosition(const Vertex& pos);
     void SetZoom(float z);
     void Reset();
+
+    void UpdateVertexDBO() const;
+    void UpdateFragmentDBO() const;
 
     std::unique_ptr<VertexBuffer> vbo;
 

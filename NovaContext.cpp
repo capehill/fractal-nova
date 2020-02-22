@@ -102,70 +102,6 @@ void Shader::Compile(const std::string& fileName)
     }
 }
 
-void Shader::UpdateVertexDBO(Program* program) const // -> DataBuffer? Or Program?
-{
-    W3DN_ErrorCode errCode;
-
-    static float angle = 0.0f;
-
-    W3DN_BufferLock* lock = context->DBOLock(&errCode, dbo->dbo, 0 /* readOffset */, 0 /* readSize */);
-
-    if (!lock) {
-        ThrowOnError(errCode, "Failed to lock data buffer object (vertex)");
-    }
-
-    VertexShaderData* data = reinterpret_cast<VertexShaderData *>(lock->buffer);
-
-    data->angle = angle * toRadians;
-    data->zoom = program->zoom;
-    data->point = { program->position.x + program->oldPosition.x, program->position.y + program->oldPosition.y };
-
-#if 0
-    if (oldPosition.x != data->point.x || oldPosition.y != data->point.y) {
-        printf("%f, %f\n", oldPosition.x, oldPosition.y);
-    }
-#endif
-
-    program->oldPosition = data->point;
-
-    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(VertexShaderData));
-
-    ThrowOnError(errCode, "Failed to unlock data buffer object (vertex)");
-
-    //angle += 1.0f;
-
-    if (angle >= 360.0f) {
-        angle = 0.0f;
-    }
-}
-
-void Shader::UpdateFragmentDBO(Program* program) const // -> DataBuffer?
-{
-    W3DN_ErrorCode errCode;
-
-#if 0
-    static int iter = 0;
-
-    if (++iter > iterations) {
-        iter = 20;
-    }
-#endif
-
-    W3DN_BufferLock* lock = context->DBOLock(&errCode, dbo->dbo, 0 /* readOffset */, 0 /* readSize */);
-
-    if (!lock) {
-        ThrowOnError(errCode, "Failed to lock data buffer object (fragment)");
-    }
-
-    FragmentShaderData* data = reinterpret_cast<FragmentShaderData *>(lock->buffer);
-
-    data->iterations = program->iterations;
-
-    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(FragmentShaderData));
-
-    ThrowOnError(errCode, "Failed to unlock data buffer object (fragment)");
-}
-
 VertexBuffer::~VertexBuffer()
 {
     if (vbo) {
@@ -378,6 +314,71 @@ Program::~Program()
     fragmentShader.reset();
 }
 
+void Program::UpdateVertexDBO() const
+{
+    W3DN_ErrorCode errCode;
+
+    static float angle = 0.0f;
+
+    W3DN_BufferLock* lock = context->DBOLock(&errCode, vertexShader->dbo->dbo, 0 /* readOffset */, 0 /* readSize */);
+
+    if (!lock) {
+        ThrowOnError(errCode, "Failed to lock data buffer object (vertex)");
+    }
+
+    VertexShaderData* data = reinterpret_cast<VertexShaderData *>(lock->buffer);
+
+    data->angle = angle * toRadians;
+    data->zoom = zoom;
+    data->point = { position.x + oldPosition.x, position.y + oldPosition.y };
+
+#if 0
+    if (oldPosition.x != data->point.x || oldPosition.y != data->point.y) {
+        printf("%f, %f\n", oldPosition.x, oldPosition.y);
+    }
+#endif
+
+    oldPosition = data->point;
+
+    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(VertexShaderData));
+
+    ThrowOnError(errCode, "Failed to unlock data buffer object (vertex)");
+
+    //angle += 1.0f;
+
+    if (angle >= 360.0f) {
+        angle = 0.0f;
+    }
+}
+
+void Program::UpdateFragmentDBO() const
+{
+    W3DN_ErrorCode errCode;
+
+#if 0
+    static int iter = 0;
+
+    if (++iter > iterations) {
+        iter = 20;
+    }
+#endif
+
+    W3DN_BufferLock* lock = context->DBOLock(&errCode, fragmentShader->dbo->dbo, 0 /* readOffset */, 0 /* readSize */);
+
+    if (!lock) {
+        ThrowOnError(errCode, "Failed to lock data buffer object (fragment)");
+    }
+
+    FragmentShaderData* data = reinterpret_cast<FragmentShaderData *>(lock->buffer);
+
+    data->iterations = iterations;
+
+    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(FragmentShaderData));
+
+    ThrowOnError(errCode, "Failed to unlock data buffer object (fragment)");
+}
+
+
 void Program::SetPosition(const Vertex& pos)
 {
     position = pos;
@@ -513,8 +514,8 @@ void NovaContext::Clear() const
 
 void NovaContext::Draw() const
 {
-    program->vertexShader->UpdateVertexDBO(program.get() /* TODO: this is a hack to get those shader parameters */);
-    program->fragmentShader->UpdateFragmentDBO(program.get());
+    program->UpdateVertexDBO();
+    program->UpdateFragmentDBO();
 
     const W3DN_ErrorCode errCode = context->DrawArrays(nullptr, W3DN_PRIM_TRISTRIP, 0 /* base */, vertexCount);
 
