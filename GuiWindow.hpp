@@ -12,12 +12,20 @@ struct GuiWindow
     ~GuiWindow();
 
     bool Run();
+    void HandleExtendedMouse(struct IntuiWheelData* data);
+    bool HandleMenuPick();
+    void HandleMouseButtons(UWORD code);
+    void HandleMouseMove(int mouseX, int mouseY);
+    void HandleNewSize();
+    bool HandleRawKey(UWORD code);
+
     void SetTitle(const char* title);
 
     Vertex GetPosition() const;
     void ClearPosition();
     float GetZoom() const;
 
+    void ResetView();
     void ZoomIn();
     void ZoomOut();
 

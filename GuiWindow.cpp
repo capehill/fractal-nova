@@ -97,7 +97,7 @@ GuiWindow::GuiWindow()
         WA_CloseGadget, TRUE,
         WA_DragBar, TRUE,
         WA_DepthGadget, TRUE,
-        WA_Flags, WFLG_REPORTMOUSE,
+        WA_Flags, WFLG_REPORTMOUSE | WFLG_NEWLOOKMENUS,
         WA_IDCMP, IDCMP_REFRESHWINDOW | IDCMP_NEWSIZE | IDCMP_CLOSEWINDOW | IDCMP_MOUSEBUTTONS | IDCMP_MOUSEMOVE |
                   IDCMP_DELTAMOVE | IDCMP_EXTENDEDMOUSE | IDCMP_RAWKEY | IDCMP_MENUPICK,
         WA_InnerWidth, width,
@@ -137,85 +137,23 @@ bool GuiWindow::Run()
             case IDCMP_CLOSEWINDOW:
                 running = false;
                 break;
-            case IDCMP_EXTENDEDMOUSE: {
-                struct IntuiWheelData *data = (struct IntuiWheelData *)msg->IAddress;
-                if (data->WheelY < 0) {
-                    ZoomIn();
-                } else {
-                    ZoomOut();
-                }
-                } break;
-            case IDCMP_MENUPICK: {
-                uint32 id = NO_MENU_ID;
-                while (((id = IIntuition->IDoMethod(reinterpret_cast<Object *>(window->MenuStrip), MM_NEXTSELECT, 0, id))) != NO_MENU_ID) {
-                    printf("ID %d\n", id);
-                }
-
-                } break;
+            case IDCMP_EXTENDEDMOUSE:
+                HandleExtendedMouse((struct IntuiWheelData *)msg->IAddress);
+                break;
+            case IDCMP_MENUPICK:
+                running = HandleMenuPick();
+                break;
             case IDCMP_MOUSEBUTTONS:
-                switch (msg->Code & ~IECODE_UP_PREFIX) {
-                    case IECODE_LBUTTON:
-                        if (!(msg->Code & IECODE_UP_PREFIX)) {
-                            //printf("%u, %u\n", msg->MouseX, msg->MouseY);
-                            refresh = true;
-                            panning = true;
-                        } else {
-                            panning = false;
-                        }
-                        break;
-                }
+                HandleMouseButtons(msg->Code);
                 break;
             case IDCMP_MOUSEMOVE:
-                if (panning) {
-                    position.x += msg->MouseX / static_cast<float>(width/2) / zoom;
-                    position.y += msg->MouseY / static_cast<float>(height/2) / zoom;
-                    refresh = true;
-                }
+                HandleMouseMove(msg->MouseX, msg->MouseY);
                 break;
             case IDCMP_NEWSIZE:
-                if ((IIntuition->GetWindowAttrs(window,
-                    WA_InnerWidth, &width,
-                    WA_InnerHeight, &height,
-                    TAG_DONE)) != 0)
-                {
-                    throw std::runtime_error("Failed to get window attributes");
-                }
-                resize = true;
+                HandleNewSize();
                 break;
             case IDCMP_RAWKEY:
-                // TODO: cursor panning
-                if (msg->Code <= 127) {
-                    switch (msg->Code) {
-                        case RAWKEY_ESC:
-                            running = false;
-                            break;
-                        case RAWKEY_SPACE:
-                            zoom = 1.0f;
-                            reset = true;
-                            break;
-                        case RAWKEY_CRSRLEFT:
-                            break;
-                        case RAWKEY_CRSRRIGHT:
-                            break;
-                        case RAWKEY_CRSRUP:
-                            ZoomIn();
-                            break;
-                        case RAWKEY_CRSRDOWN:
-                            ZoomOut();
-                            break;
-                        case RAWKEY_LSHIFT:
-                        case RAWKEY_RSHIFT:
-                            fastZoom = true;
-                            break;
-                    }
-                } else {
-                    switch (msg->Code & 0x7F) {
-                        case RAWKEY_LSHIFT:
-                        case RAWKEY_RSHIFT:
-                            fastZoom = false;
-                            break;
-                    }
-                }
+                running = HandleRawKey(msg->Code);
                 break;
             case IDCMP_REFRESHWINDOW:
                 refresh = true;
@@ -226,6 +164,115 @@ bool GuiWindow::Run()
         }
 
         IExec->ReplyMsg((struct Message *)msg);
+    }
+
+    return running;
+}
+
+void GuiWindow::HandleExtendedMouse(struct IntuiWheelData * data)
+{
+    if (data->WheelY < 0) {
+        ZoomIn();
+    } else {
+        ZoomOut();
+    }
+}
+
+bool GuiWindow::HandleMenuPick()
+{
+    bool running { true };
+
+    uint32 id = NO_MENU_ID;
+
+    while (((id = IIntuition->IDoMethod(reinterpret_cast<Object *>(window->MenuStrip), MM_NEXTSELECT, 0, id))) != NO_MENU_ID) {
+        switch(id) {
+            case MID_Quit:
+                running = false;
+                break;
+            case MID_ResetView:
+                ResetView();
+                break;
+            default:
+                printf("Unhandled menu ID %lu\n", id);
+                break;
+        }
+    }
+
+    return running;
+}
+
+void GuiWindow::HandleMouseButtons(UWORD code)
+{
+    switch (code & ~IECODE_UP_PREFIX) {
+        case IECODE_LBUTTON:
+            if (!(code & IECODE_UP_PREFIX)) {
+                //printf("%u, %u\n", msg->MouseX, msg->MouseY);
+                refresh = true;
+                panning = true;
+            } else {
+                panning = false;
+            }
+            break;
+    }
+}
+
+void GuiWindow::HandleMouseMove(int mouseX, int mouseY)
+{
+    if (panning) {
+        position.x += mouseX / static_cast<float>(width/2) / zoom;
+        position.y += mouseY / static_cast<float>(height/2) / zoom;
+        refresh = true;
+    }
+}
+
+void GuiWindow::HandleNewSize()
+{
+    if ((IIntuition->GetWindowAttrs(window,
+        WA_InnerWidth, &width,
+        WA_InnerHeight, &height,
+        TAG_DONE)) != 0)
+    {
+        throw std::runtime_error("Failed to get window attributes");
+    }
+
+    resize = true;
+}
+
+bool GuiWindow::HandleRawKey(UWORD code)
+{
+    bool running { true };
+
+    // TODO: cursor panning
+    if (code <= 127) {
+        switch (code) {
+            case RAWKEY_ESC:
+                running = false;
+                break;
+            case RAWKEY_SPACE:
+                ResetView();
+                break;
+            case RAWKEY_CRSRLEFT:
+                break;
+            case RAWKEY_CRSRRIGHT:
+                break;
+            case RAWKEY_CRSRUP:
+                ZoomIn();
+                break;
+            case RAWKEY_CRSRDOWN:
+                ZoomOut();
+                break;
+            case RAWKEY_LSHIFT:
+            case RAWKEY_RSHIFT:
+                fastZoom = true;
+                break;
+        }
+    } else {
+        switch (code & 0x7F) {
+            case RAWKEY_LSHIFT:
+            case RAWKEY_RSHIFT:
+                fastZoom = false;
+                break;
+        }
     }
 
     return running;
@@ -267,6 +314,12 @@ void GuiWindow::ZoomOut()
     }
 
     refresh = true;
+}
+
+void GuiWindow::ResetView()
+{
+    zoom = 1.0f;
+    reset = true;
 }
 
 uint32 GuiWindow::Width() const
