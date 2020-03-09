@@ -8,7 +8,7 @@ namespace fractalnova {
 
 struct NovaObject
 {
-    NovaObject(W3DN_Context* context);
+    explicit NovaObject(W3DN_Context* context);
 
     std::string ErrorToString(W3DN_ErrorCode errCode) const;
     void ThrowOnError(W3DN_ErrorCode errCode, const std::string& message) const;

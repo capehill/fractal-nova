@@ -22,7 +22,7 @@ struct WeightedColor {
 
 struct Palette
 {
-    Palette(int size);
+    explicit Palette(int size);
 
     void Add(const Color& c, float w);
     std::vector<Color> Create();

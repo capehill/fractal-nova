@@ -6,7 +6,7 @@ namespace fractalnova {
 
 struct VertexBuffer: public NovaObject
 {
-    VertexBuffer(W3DN_Context* context);
+    explicit VertexBuffer(W3DN_Context* context);
     ~VertexBuffer();
 
     W3DN_VertexBuffer* vbo { nullptr };
