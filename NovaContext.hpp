@@ -17,7 +17,7 @@ struct Vertex;
 
 struct NovaContext: public NovaObject
 {
-    NovaContext(const GuiWindow& window, bool verboseMode, bool vsync, int iterations);
+    NovaContext(const GuiWindow& window, bool vsync, int iterations);
     ~NovaContext();
 
     void CloseLib();
@@ -40,7 +40,7 @@ struct NovaContext: public NovaObject
     const GuiWindow& window;
     uint32 width { 0 };
     uint32 height { 0 };
-    bool verbose { false };
+
     bool vsync { false };
 };
 

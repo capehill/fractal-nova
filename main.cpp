@@ -53,6 +53,11 @@ void ParseArgs()
             }
         }
         logging::Log("ITER [%ld]\n", iterations);
+
+        if (params.verbose) {
+            logging::MakeVerbose();
+        }
+
         IDOS->FreeArgs(result);
     } else {
         logging::Error("Error when reading command-line arguments. Known parameters are: %s\n", pattern);
@@ -71,7 +76,7 @@ int main(void)
 
     try {
         fractalnova::GuiWindow window;
-        fractalnova::NovaContext context { window, fractalnova::params.verbose, fractalnova::params.vsync, fractalnova::iterations };
+        fractalnova::NovaContext context { window, fractalnova::params.vsync, fractalnova::iterations };
         fractalnova::Timer timer;
 
         const uint64 start = timer.GetTicks();

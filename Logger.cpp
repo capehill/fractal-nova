@@ -12,6 +12,11 @@ void MakeVerbose()
     verbose = true;
 }
 
+bool IsVerbose()
+{
+    return verbose;
+}
+
 static void LogImpl(const char * fmt, va_list ap)
 {
     char buffer[16 * 1024];

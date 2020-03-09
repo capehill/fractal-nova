@@ -22,7 +22,7 @@ struct FragmentShaderData {
 
 struct Shader: public NovaObject
 {
-    Shader(W3DN_Context* context, W3DN_ShaderType shaderType, bool verbose);
+    Shader(W3DN_Context* context, W3DN_ShaderType shaderType);
     ~Shader();
 
     void Compile(const std::string& fileName);
@@ -30,7 +30,6 @@ struct Shader: public NovaObject
     std::unique_ptr<DataBuffer> dbo;
 
     W3DN_Shader* shader { nullptr };
-    bool verbose { false };
 };
 
 } // fractalnova

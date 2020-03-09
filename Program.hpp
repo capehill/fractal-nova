@@ -12,7 +12,7 @@ struct Shader;
 
 struct Program: public NovaObject
 {
-    Program(W3DN_Context* context, bool verbose, int iterations);
+    Program(W3DN_Context* context, int iterations);
     ~Program();
 
     void SetPosition(const Vertex& pos);

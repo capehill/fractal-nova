@@ -4,7 +4,11 @@
 
 namespace fractalnova {
 
-Shader::Shader(W3DN_Context* context, W3DN_ShaderType shaderType, const bool verbose): NovaObject(context), verbose(verbose)
+namespace {
+static constexpr bool verbose { false };
+}
+
+Shader::Shader(W3DN_Context* context, W3DN_ShaderType shaderType): NovaObject(context)
 {
     if (shaderType == W3DNST_VERTEX) {
         dbo = std::make_unique<DataBuffer>(context, W3DNST_VERTEX, sizeof(VertexShaderData), shader);

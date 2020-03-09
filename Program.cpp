@@ -11,10 +11,10 @@ namespace {
     static constexpr float toRadians { M_PI/ 180.0f };
 }
 
-Program::Program(W3DN_Context* context, const bool verbose, const int iterations):
+Program::Program(W3DN_Context* context, const int iterations):
     NovaObject(context),
-    vertexShader(std::make_unique<Shader>(context, W3DNST_VERTEX, verbose)),
-    fragmentShader(std::make_unique<Shader>(context, W3DNST_FRAGMENT, verbose)),
+    vertexShader(std::make_unique<Shader>(context, W3DNST_VERTEX)),
+    fragmentShader(std::make_unique<Shader>(context, W3DNST_FRAGMENT)),
     iterations(iterations)
 {
 #if 0

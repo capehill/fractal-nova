@@ -22,8 +22,8 @@ namespace fractalnova {
 struct Warp3DNovaIFace* IW3DNova;
 static struct Library* NovaBase;
 
-NovaContext::NovaContext(const GuiWindow& window, const bool verbose, const bool vsync, const int iterations)
-    : NovaObject(nullptr), window(window), verbose(verbose), vsync(vsync)
+NovaContext::NovaContext(const GuiWindow& window, const bool vsync, const int iterations)
+    : NovaObject(nullptr), window(window), vsync(vsync)
 {
     NovaBase = IExec->OpenLibrary("Warp3DNova.library", 1);
 
@@ -45,7 +45,7 @@ NovaContext::NovaContext(const GuiWindow& window, const bool verbose, const bool
 
     Resize();
 
-    program = std::make_unique<Program>(context, verbose, iterations);
+    program = std::make_unique<Program>(context, iterations);
 
     CreateTexture();
 }
