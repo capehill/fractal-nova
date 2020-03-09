@@ -193,6 +193,12 @@ bool GuiWindow::HandleMenuPick()
             case MID_ResetView:
                 ResetView();
                 break;
+            case MID_Mandelbrot:
+                fractal = EFractal::Mandelbrot;
+                break;
+            case MID_Julia:
+                fractal = EFractal::Julia;
+                break;
             default:
                 logging::Error("Unhandled menu ID %lu", id);
                 break;
@@ -331,6 +337,11 @@ uint32 GuiWindow::Width() const
 uint32 GuiWindow::Height() const
 {
     return height;
+}
+
+EFractal GuiWindow::GetFractal() const
+{
+    return fractal;
 }
 
 } // fractalnova

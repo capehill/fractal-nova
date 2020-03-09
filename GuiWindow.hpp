@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vertex.hpp"
+#include "EFractal.hpp"
 
 #include <proto/intuition.h>
 
@@ -34,6 +35,8 @@ struct GuiWindow
     uint32 Width() const;
     uint32 Height() const;
 
+    EFractal GetFractal() const;
+
     mutable bool resize { false };
     mutable bool refresh { true };
     mutable bool reset { false };
@@ -45,6 +48,8 @@ struct GuiWindow
     float zoom { 1.0f };
     uint32 width { 800 };
     uint32 height { 600 };
+
+    EFractal fractal { EFractal::Mandelbrot };
 };
 
 } // fractalnova

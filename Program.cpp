@@ -2,6 +2,7 @@
 #include "Shader.hpp"
 #include "VertexBuffer.hpp"
 #include "DataBuffer.hpp"
+#include "Logger.hpp"
 
 #include <cmath> // M_PI
 
@@ -11,24 +12,16 @@ namespace {
     static constexpr float toRadians { M_PI/ 180.0f };
 }
 
-Program::Program(W3DN_Context* context, const int iterations):
+Program::Program(W3DN_Context* context, const int iterations, const char* name):
     NovaObject(context),
     vertexShader(std::make_unique<Shader>(context, W3DNST_VERTEX)),
     fragmentShader(std::make_unique<Shader>(context, W3DNST_FRAGMENT)),
     iterations(iterations)
 {
-#if 0
-    vertexShader = CompileShader("simple.vert.spv");
-    fragmentShader = CompileShader("simple.frag.spv");
-#else
-#if 1
-    vertexShader->Compile("julia.vert.spv");
-    fragmentShader->Compile("julia.frag.spv");
-#else
-    vertexShader = CompileShader("mandelbrot.vert.spv");
-    fragmentShader = CompileShader("mandelbrot.frag.spv");
-#endif
-#endif
+    logging::Log("Creating shader program '%s'", name);
+
+    vertexShader->Compile(std::string(name) + ".vert.spv");
+    fragmentShader->Compile(std::string(name) + ".frag.spv");
 
     W3DN_ErrorCode errCode;
     shaderPipeline = context->CreateShaderPipelineTags(&errCode,

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NovaObject.hpp"
+#include "EFractal.hpp"
 
 #include <Warp3DNova/Context.h>
 
@@ -33,6 +34,8 @@ struct NovaContext: public NovaObject
     void SetZoom(float zoom);
     void Reset();
 
+    void UseProgram(EFractal fractal);
+
     std::unique_ptr<BackBuffer> backBuffer;
     std::unique_ptr<Program> program;
     std::unique_ptr<Texture> texture;
@@ -40,6 +43,8 @@ struct NovaContext: public NovaObject
     const GuiWindow& window;
     uint32 width { 0 };
     uint32 height { 0 };
+
+    const int iterations;
 
     bool vsync { false };
 };

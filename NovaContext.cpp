@@ -3,7 +3,6 @@
 #include "Palette.hpp"
 #include "Texture.hpp"
 #include "DataBuffer.hpp"
-#include "Shader.hpp"
 #include "VertexBuffer.hpp"
 #include "Program.hpp"
 #include "BackBuffer.hpp"
@@ -23,7 +22,7 @@ struct Warp3DNovaIFace* IW3DNova;
 static struct Library* NovaBase;
 
 NovaContext::NovaContext(const GuiWindow& window, const bool vsync, const int iterations)
-    : NovaObject(nullptr), window(window), vsync(vsync)
+    : NovaObject(nullptr), window(window), iterations(iterations), vsync(vsync)
 {
     NovaBase = IExec->OpenLibrary("Warp3DNova.library", 1);
 
@@ -45,8 +44,7 @@ NovaContext::NovaContext(const GuiWindow& window, const bool vsync, const int it
 
     Resize();
 
-    program = std::make_unique<Program>(context, iterations);
-
+    UseProgram(EFractal::Mandelbrot);
     CreateTexture();
 }
 
@@ -191,6 +189,24 @@ void NovaContext::SetZoom(const float z)
 void NovaContext::Reset()
 {
     program->Reset();
+}
+
+void NovaContext::UseProgram(const EFractal fractal)
+{
+    const char* name;
+
+    switch (fractal) {
+        default:
+        case EFractal::Mandelbrot:
+            name = "mandelbrot";
+            break;
+        case EFractal::Julia:
+            name = "julia";
+            break;
+    }
+
+    program.reset(); // Destroy old program first. Otherwise Program destructor removes ShaderPipeline afterwards!
+    program = std::make_unique<Program>(context, iterations, name);
 }
 
 } // fractal-nova
