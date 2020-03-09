@@ -1,6 +1,7 @@
 #include "GuiWindow.hpp"
 #include "NovaContext.hpp"
 #include "Timer.hpp"
+#include "Logger.hpp"
 
 #include <proto/dos.h>
 //#include <proto/exec.h>
@@ -11,7 +12,6 @@
 namespace fractalnova {
 
 namespace {
-    constexpr bool verboseMode { false };
     constexpr double eventPeriod { 1.0 / 60 };
 
     static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 0.2 (13.02.2020)" };
@@ -21,21 +21,28 @@ struct Params {
     LONG vsync;
     LONG* iter;
     LONG lazyClear;
+    LONG verbose;
 };
 
-static Params params { 0, nullptr, 0 };
+static Params params { 0, nullptr, 0, 0 };
 
 static int32 iterations { 100 };
 
+static const char* ToString(const bool b)
+{
+    return b ? "on" : "off";
+}
+
 void ParseArgs()
 {
-    const char* const pattern = "VSYNC/S,ITER/N,LAZYCLEAR/S";
+    const char* const pattern = "VSYNC/S,ITER/N,LAZYCLEAR/S,VERBOSE/S";
 
     struct RDArgs *result = IDOS->ReadArgs(pattern, (int32 *)&params, NULL);
 
     if (result) {
-        printf("VSYNC [%s]\n", params.vsync ? "on" : "off");
-        printf("Lazy clear [%s]\n", params.lazyClear ? "on" : "off");
+        logging::Log("VSYNC [%s]\n", ToString(params.vsync));
+        logging::Log("Lazy clear [%s]\n", ToString(params.lazyClear));
+        logging::Log("Verbose [%s]\n", ToString(params.verbose));
 
         if (params.iter) {
             iterations = *params.iter;
@@ -45,10 +52,10 @@ void ParseArgs()
                 iterations = 1000;
             }
         }
-        printf("ITER [%ld]\n", iterations);
+        logging::Log("ITER [%ld]\n", iterations);
         IDOS->FreeArgs(result);
     } else {
-        printf("Error when reading command-line arguments. Known parameters are: %s\n", pattern);
+        logging::Error("Error when reading command-line arguments. Known parameters are: %s\n", pattern);
     }
 }
 
@@ -64,7 +71,7 @@ int main(void)
 
     try {
         fractalnova::GuiWindow window;
-        fractalnova::NovaContext context { window, fractalnova::verboseMode, fractalnova::params.vsync, fractalnova::iterations };
+        fractalnova::NovaContext context { window, fractalnova::params.verbose, fractalnova::params.vsync, fractalnova::iterations };
         fractalnova::Timer timer;
 
         const uint64 start = timer.GetTicks();
@@ -128,11 +135,11 @@ int main(void)
         duration = timer.TicksToSeconds(finish - start);
 
     } catch (std::exception& e) {
-        printf("Exception %s\n", e.what());
+        logging::Error("Exception %s\n", e.what());
     }
 
-    printf("Frames %llu in %.1f second. FPS %.1f\n", frames, duration, frames / duration);
-    printf("Events checked %llu. EPS %.1f\n", events, events / duration);
+    logging::Log("Frames %llu in %.1f second. FPS %.1f\n", frames, duration, frames / duration);
+    logging::Log("Events checked %llu. EPS %.1f\n", events, events / duration);
 
     return 0;
 }

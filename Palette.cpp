@@ -1,4 +1,5 @@
 #include "Palette.hpp"
+#include "Logger.hpp"
 
 #include <cstdio>
 #include <stdexcept>
@@ -22,7 +23,7 @@ std::vector<Color> Palette::Create()
         weight += wc.w;
     }
 
-    printf("Palette size %d, total weight %f\n", size, weight);
+    logging::Log("Palette size %d, total weight %f", size, weight);
 
     if (weight <= 0.0f || weightedColors.size() < 2) {
         throw std::runtime_error("Invalid weight");

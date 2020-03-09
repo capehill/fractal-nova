@@ -7,6 +7,7 @@
 #include "VertexBuffer.hpp"
 #include "Program.hpp"
 #include "BackBuffer.hpp"
+#include "Logger.hpp"
 
 #include <proto/exec.h>
 #include <proto/graphics.h>
@@ -127,7 +128,7 @@ void NovaContext::Resize()
 
     ThrowOnError(errCode, "Failed to set viewport");
 
-    printf("Viewport %lu * %lu\n", width, height);
+    logging::Log("Viewport %lu * %lu", width, height);
 }
 
 void NovaContext::Clear() const

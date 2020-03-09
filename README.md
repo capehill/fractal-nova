@@ -19,6 +19,7 @@ Press ESC key to quit.
 ITER/N (20-1000): iteration depth.
 VSYNC/S: limit the drawing speed.
 LAZYCLEAR/S: clear backbuffer only once per second. Clearing is only necessary when user pans outside of the fractal area.
+VERBOSE/S: enable console logging.
 
 ## TODO
 

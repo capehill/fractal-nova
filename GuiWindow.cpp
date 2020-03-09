@@ -1,4 +1,5 @@
 #include "GuiWindow.hpp"
+#include "Logger.hpp"
 
 #include <proto/exec.h>
 #include <proto/intuition.h>
@@ -86,7 +87,7 @@ GuiWindow::GuiWindow()
         TAG_DONE);
 
     if (!menu) {
-        printf("Failed to create menus\n");
+        logging::Error("Failed to create menus");
     }
 
     window = IIntuition->OpenWindowTags(nullptr,
@@ -159,7 +160,7 @@ bool GuiWindow::Run()
                 refresh = true;
                 break;
             default:
-                printf("Unknown event %lu\n", msg->Class);
+                logging::Error("Unknown event %lu", msg->Class);
                 break;
         }
 
@@ -193,7 +194,7 @@ bool GuiWindow::HandleMenuPick()
                 ResetView();
                 break;
             default:
-                printf("Unhandled menu ID %lu\n", id);
+                logging::Error("Unhandled menu ID %lu", id);
                 break;
         }
     }
@@ -206,7 +207,7 @@ void GuiWindow::HandleMouseButtons(UWORD code)
     switch (code & ~IECODE_UP_PREFIX) {
         case IECODE_LBUTTON:
             if (!(code & IECODE_UP_PREFIX)) {
-                //printf("%u, %u\n", msg->MouseX, msg->MouseY);
+                //logging::Log("%u, %u", msg->MouseX, msg->MouseY);
                 refresh = true;
                 panning = true;
             } else {
@@ -309,7 +310,7 @@ void GuiWindow::ZoomOut()
     zoom -= fastZoom ? 10 * zoomStep : zoomStep;
 
     if (zoom <= 0.0f) {
-        puts("Cannot zoom further");
+        logging::Log("Cannot zoom further");
         zoom = 1.0f;
     }
 

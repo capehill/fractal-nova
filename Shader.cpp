@@ -1,5 +1,6 @@
 #include "Shader.hpp"
 #include "DataBuffer.hpp"
+#include "Logger.hpp"
 
 namespace fractalnova {
 
@@ -38,7 +39,7 @@ void Shader::Compile(const std::string& fileName)
 
     if (!shader) {
         if (shaderLog) {
-            printf("Compiling %s failed (%u) with error: %s\n",
+            logging::Error("Compiling %s failed (%u) with error: %s",
                fileName.c_str(), errCode, ErrorToString(errCode).c_str());
 
             context->DestroyShaderLog(shaderLog);
@@ -48,7 +49,7 @@ void Shader::Compile(const std::string& fileName)
     }
 
     if (shaderLog) {
-        printf("%s compilation log:\n%s\n", fileName.c_str(), shaderLog);
+        logging::Log("%s compilation log:\n%s", fileName.c_str(), shaderLog);
         context->DestroyShaderLog(shaderLog);
     }
 }

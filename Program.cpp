@@ -81,7 +81,7 @@ void Program::UpdateVertexDBO() const
 
 #if 0
     if (oldPosition.x != data->point.x || oldPosition.y != data->point.y) {
-        printf("%f, %f\n", oldPosition.x, oldPosition.y);
+        logging::Log("%f, %f", oldPosition.x, oldPosition.y);
     }
 #endif
 
