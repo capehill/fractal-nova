@@ -28,6 +28,8 @@ struct GuiWindow
     float GetZoom() const;
 
     void ResetView();
+
+    float GetZoomStep() const;
     void ZoomIn();
     void ZoomOut();
 

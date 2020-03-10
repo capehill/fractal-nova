@@ -15,7 +15,6 @@
 namespace fractalnova {
 
 namespace {
-    constexpr float zoomStep { 1.0f };
     constexpr const char* const name { "Fractal Nova" };
 }
 
@@ -432,20 +431,36 @@ float GuiWindow::GetZoom() const
     return zoom;
 }
 
-// TODO: make zooming faster
+float GuiWindow::GetZoomStep() const
+{
+    constexpr float zoomStep { 1.01f };
+
+    return fastZoom ? 2.0f * zoomStep : zoomStep;
+}
+
 void GuiWindow::ZoomIn()
 {
-    zoom += fastZoom ? 10.0f * zoomStep : zoomStep;
+    constexpr float maxZoom { 20000.0f };
+
+    zoom *= GetZoomStep();
+
+    if (zoom > maxZoom) {
+        logging::Log("Cannot zoom closer");
+        zoom = maxZoom;
+    }
+
     refresh = true;
 }
 
 void GuiWindow::ZoomOut()
 {
-    zoom -= fastZoom ? 10.0f * zoomStep : zoomStep;
+    constexpr float minZoom { 1.0f };
 
-    if (zoom <= 0.0f) {
+    zoom /= GetZoomStep();
+
+    if (zoom < minZoom) {
         logging::Log("Cannot zoom further");
-        zoom = 1.0f;
+        zoom = minZoom;
     }
 
     refresh = true;
