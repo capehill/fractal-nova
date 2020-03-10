@@ -2,6 +2,7 @@
 
 #include "NovaObject.hpp"
 #include "EFractal.hpp"
+#include "EPalette.hpp"
 
 #include <Warp3DNova/Context.h>
 
@@ -15,6 +16,7 @@ struct Texture;
 struct Program;
 struct BackBuffer;
 struct Vertex;
+struct Palette;
 
 struct NovaContext: public NovaObject
 {
@@ -23,7 +25,9 @@ struct NovaContext: public NovaObject
 
     void CloseLib();
 
-    void CreateTexture();
+    void CreateTexture(Palette& palette);
+    void CreateRainbowPalette();
+    void CreateRainbowRevPalette();
 
     void Resize();
     void Clear() const;
@@ -35,6 +39,7 @@ struct NovaContext: public NovaObject
     void Reset();
 
     void UseProgram(EFractal fractal);
+    void UsePalette(EPalette palette);
 
     std::unique_ptr<BackBuffer> backBuffer;
     std::unique_ptr<Program> program;

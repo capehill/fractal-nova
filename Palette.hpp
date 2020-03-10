@@ -1,5 +1,7 @@
 #pragma once
 
+#include "EPalette.hpp"
+
 #include <cstdint>
 #include <vector>
 
@@ -22,10 +24,14 @@ struct WeightedColor {
 
 struct Palette
 {
-    explicit Palette(int size);
+    explicit Palette(EPalette palette, int size = 4 * 256);
+
+    void Create(EPalette palette);
+    void Rainbow();
+    void RainbowRev();
 
     void Add(const Color& c, float w);
-    std::vector<Color> Create();
+    std::vector<Color> GetColorArray();
 
     std::vector<WeightedColor> weightedColors;
     std::vector<Color> colors;

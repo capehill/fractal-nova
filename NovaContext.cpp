@@ -45,7 +45,7 @@ NovaContext::NovaContext(const GuiWindow& window, const bool vsync, const int it
     Resize();
 
     UseProgram(EFractal::Mandelbrot);
-    CreateTexture();
+    UsePalette(EPalette::Rainbow);
 }
 
 NovaContext::~NovaContext()
@@ -76,30 +76,11 @@ void NovaContext::CloseLib()
     }
 }
 
-void NovaContext::CreateTexture()
+void NovaContext::CreateTexture(Palette& palette)
 {
-    Palette palette { 4 * 256 };
+    auto colors = palette.GetColorArray();
 
-#if 1
-    palette.Add( {   0,   0,   0 }, 1.0f );
-    palette.Add( { 255,   0,   0 }, 1.0f );
-    palette.Add( { 255, 127,   0 }, 1.0f );
-    palette.Add( { 255, 255,   0 }, 1.0f );
-    palette.Add( {   0, 255,   0 }, 1.0f );
-    palette.Add( {   0,   0, 255 }, 1.0f );
-    palette.Add( {  75,   0, 130 }, 1.0f );
-    palette.Add( { 148,   0, 211 }, 1.0f );
-#else
-    palette.Add( {   0,   0,   0, 255 }, 1.0f );
-    palette.Add( {   0,   0, 255, 255 }, 8.0f );
-    palette.Add( { 255,   0, 255, 255 }, 8.0f );
-    palette.Add( { 255, 255, 255, 255 }, 8.0f );
-    palette.Add( {   0, 255, 0,   255 }, 8.0f );
-    palette.Add( {   0,   0, 255, 255 }, 8.0f );
-#endif
-
-    auto colors = palette.Create();
-
+    texture.reset();
     texture = std::make_unique<Texture>(context, colors);
 }
 
@@ -193,11 +174,20 @@ void NovaContext::Reset()
 
 void NovaContext::UseProgram(const EFractal fractal)
 {
+    static EFractal current { EFractal::Unknown };
+
+    if (current == fractal) {
+        return;
+    }
+
+    logging::Log("Switch fractal %d", static_cast<int>(fractal));
+
+    current = fractal;
+
     const char* name;
     Vertex complex {};
 
     switch (fractal) {
-        default:
         case EFractal::Mandelbrot:
             name = "mandelbrot";
             break;
@@ -233,11 +223,38 @@ void NovaContext::UseProgram(const EFractal fractal)
             name = "julia";
             complex = { -0.8f, 0.156f };
             break;
+        default:
+            logging::Error("Unknown fractal %d", static_cast<int>(fractal));
+            break;
     }
 
     program.reset(); // Destroy old program first. Otherwise Program destructor removes ShaderPipeline afterwards!
     program = std::make_unique<Program>(context, iterations, name);
     program->SetComplex(complex);
+}
+
+void NovaContext::UsePalette(const EPalette palette)
+{
+    static EPalette current { EPalette::Unknown };
+
+    if (current == palette) {
+        return;
+    }
+
+    current = palette;
+
+    logging::Log("Switch palette %d", static_cast<int>(palette));
+
+    switch (palette) {
+        case EPalette::Rainbow:
+        case EPalette::RainbowRev: {
+            Palette p { palette };
+            CreateTexture(p);
+            } break;
+        default:
+            logging::Error("Unknown palette %d", static_cast<int>(palette));
+            break;
+    }
 }
 
 } // fractal-nova

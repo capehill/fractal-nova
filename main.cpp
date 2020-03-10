@@ -74,8 +74,6 @@ int main(void)
 
     fractalnova::ParseArgs();
 
-    fractalnova::EFractal fractal = fractalnova::EFractal::Mandelbrot;
-
     try {
         fractalnova::GuiWindow window;
         fractalnova::NovaContext context { window, fractalnova::params.vsync, fractalnova::iterations };
@@ -108,12 +106,8 @@ int main(void)
                     window.reset = false;
                 }
 
-                const fractalnova::EFractal current = window.GetFractal();
-                if (current != fractal) {
-                    fractal = current;
-                    logging::Log("Switch fractal %d", static_cast<int>(fractal));
-                    context.UseProgram(fractal);
-                }
+                context.UseProgram(window.GetFractal());
+                context.UsePalette(window.GetPalette());
             }
 
             if (window.refresh) {

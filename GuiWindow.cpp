@@ -238,6 +238,9 @@ bool GuiWindow::HandleMenuPick()
             case MID_ResetView:
                 ResetView();
                 break;
+
+            // Fractals
+
             case MID_Mandelbrot:
                 fractal = EFractal::Mandelbrot;
                 break;
@@ -264,6 +267,15 @@ bool GuiWindow::HandleMenuPick()
                 break;
             case MID_Julia8:
                 fractal = EFractal::Julia8;
+                break;
+
+            // Palettes
+
+            case MID_Rainbow:
+                palette = EPalette::Rainbow;
+                break;
+            case MID_RainbowRev:
+                palette = EPalette::RainbowRev;
                 break;
 
             default:
@@ -376,15 +388,16 @@ float GuiWindow::GetZoom() const
     return zoom;
 }
 
+// TODO: make zooming faster
 void GuiWindow::ZoomIn()
 {
-    zoom += fastZoom ? 10 * zoomStep : zoomStep;
+    zoom += fastZoom ? 10.0f * zoomStep : zoomStep;
     refresh = true;
 }
 
 void GuiWindow::ZoomOut()
 {
-    zoom -= fastZoom ? 10 * zoomStep : zoomStep;
+    zoom -= fastZoom ? 10.0f * zoomStep : zoomStep;
 
     if (zoom <= 0.0f) {
         logging::Log("Cannot zoom further");
@@ -413,6 +426,11 @@ uint32 GuiWindow::Height() const
 EFractal GuiWindow::GetFractal() const
 {
     return fractal;
+}
+
+EPalette GuiWindow::GetPalette() const
+{
+    return palette;
 }
 
 } // fractalnova

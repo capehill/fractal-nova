@@ -2,6 +2,7 @@
 
 #include "Vertex.hpp"
 #include "EFractal.hpp"
+#include "EPalette.hpp"
 
 #include <proto/intuition.h>
 
@@ -36,6 +37,7 @@ struct GuiWindow
     uint32 Height() const;
 
     EFractal GetFractal() const;
+    EPalette GetPalette() const;
 
     mutable bool resize { false };
     mutable bool refresh { true };
@@ -50,6 +52,7 @@ struct GuiWindow
     uint32 height { 600 };
 
     EFractal fractal { EFractal::Mandelbrot };
+    EPalette palette { EPalette::Rainbow };
 };
 
 } // fractalnova

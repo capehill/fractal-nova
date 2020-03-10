@@ -6,8 +6,46 @@
 
 namespace fractalnova {
 
-Palette::Palette(const int size): size(size)
+Palette::Palette(const EPalette palette, const int size): size(size)
 {
+    Create(palette);
+}
+
+void Palette::Rainbow()
+{
+    Add( {   0,   0,   0 }, 1.0f );
+    Add( { 255,   0,   0 }, 1.0f );
+    Add( { 255, 127,   0 }, 1.0f );
+    Add( { 255, 255,   0 }, 1.0f );
+    Add( {   0, 255,   0 }, 1.0f );
+    Add( {   0,   0, 255 }, 1.0f );
+    Add( {  75,   0, 130 }, 1.0f );
+    Add( { 148,   0, 211 }, 1.0f );
+}
+
+void Palette::RainbowRev()
+{
+    Add( {   0,   0,   0 }, 1.0f );
+    Add( { 148,   0, 211 }, 1.0f );
+    Add( {  75,   0, 130 }, 1.0f );
+    Add( {   0,   0, 255 }, 1.0f );
+    Add( {   0, 255,   0 }, 1.0f );
+    Add( { 255, 255,   0 }, 1.0f );
+    Add( { 255, 127,   0 }, 1.0f );
+    Add( { 255,   0,   0 }, 1.0f );
+}
+
+void Palette::Create(const EPalette palette)
+{
+    switch (palette) {
+        case EPalette::Rainbow:
+            return Rainbow();
+        case EPalette::RainbowRev:
+            return RainbowRev();
+        default:
+            logging::Error("Unknown palette %d", static_cast<int>(palette));
+            return Rainbow();
+    }
 }
 
 void Palette::Add(const Color& c, const float weight)
@@ -15,7 +53,7 @@ void Palette::Add(const Color& c, const float weight)
     weightedColors.emplace_back(WeightedColor { c, weight });
 }
 
-std::vector<Color> Palette::Create()
+std::vector<Color> Palette::GetColorArray()
 {
     float weight = 0.0f;
 

@@ -23,8 +23,5 @@ VERBOSE/S: enable console logging.
 
 ## TODO
 
-Menu system.
-More fractals.
-More colour schemes.
-Effects?
+
 
