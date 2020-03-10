@@ -3,6 +3,7 @@
 precision highp float;
 
 uniform layout(location = 0) int u_iterations;
+uniform layout(location = 1) vec2 u_complex;
 
 uniform layout(binding = 0) sampler2D texSampler;
 
@@ -11,8 +12,6 @@ out vec4 fragColor;
 
 void main()
 {
-    const vec2 c = vec2(0.285, 0.00);
-
     float x = texCoord.x;
     float y = texCoord.y;
     int iteration = 0;
@@ -23,8 +22,8 @@ void main()
         xx = x * x;
         yy = y * y;
         float xtemp = xx - yy;
-        y = 2.0 * x * y + c.y;
-        x = xtemp + c.x;
+        y = 2.0 * x * y + u_complex.y;
+        x = xtemp + u_complex.x;
         iteration++;
     }
 

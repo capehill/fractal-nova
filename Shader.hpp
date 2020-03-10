@@ -18,6 +18,7 @@ struct VertexShaderData {
 
 struct FragmentShaderData {
     int32 iterations;
+    Vertex complex;
 };
 
 struct Shader: public NovaObject

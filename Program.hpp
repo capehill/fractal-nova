@@ -16,6 +16,7 @@ struct Program: public NovaObject
     ~Program();
 
     void SetPosition(const Vertex& pos);
+    void SetComplex(const Vertex& complex);
     void SetZoom(float z);
     void Reset();
 
@@ -31,6 +32,7 @@ struct Program: public NovaObject
 
     float zoom { 1.0f };
     Vertex position { };
+    Vertex complex { };
     mutable Vertex oldPosition { };
 
     int iterations { 0 };

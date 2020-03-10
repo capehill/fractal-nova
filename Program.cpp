@@ -112,6 +112,7 @@ void Program::UpdateFragmentDBO() const
     FragmentShaderData* data = reinterpret_cast<FragmentShaderData *>(lock->buffer);
 
     data->iterations = iterations;
+    data->complex = complex; // TODO: only Julia uses this
 
     errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(FragmentShaderData));
 
@@ -122,6 +123,11 @@ void Program::UpdateFragmentDBO() const
 void Program::SetPosition(const Vertex& pos)
 {
     position = pos;
+}
+
+void Program::SetComplex(const Vertex& c)
+{
+    complex = c;
 }
 
 void Program::SetZoom(const float z)

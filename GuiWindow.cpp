@@ -26,7 +26,14 @@ enum EMenu {
     MID_ResetView,
     //
     MID_Mandelbrot,
-    MID_Julia,
+    MID_Julia1,
+    MID_Julia2,
+    MID_Julia3,
+    MID_Julia4,
+    MID_Julia5,
+    MID_Julia6,
+    MID_Julia7,
+    MID_Julia8,
     //
     MID_Rainbow,
     MID_RainbowRev
@@ -64,9 +71,45 @@ GuiWindow::GuiWindow()
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
-                MA_Label, "Julia",
-                MA_ID, MID_Julia,
+                MA_Label, "Julia 1",
+                MA_ID, MID_Julia1,
                 TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Julia 2",
+                MA_ID, MID_Julia2,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Julia 3",
+                MA_ID, MID_Julia3,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Julia 4",
+                MA_ID, MID_Julia4,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Julia 5",
+                MA_ID, MID_Julia5,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Julia 6",
+                MA_ID, MID_Julia6,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Julia 7",
+                MA_ID, MID_Julia7,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Julia 8",
+                MA_ID, MID_Julia8,
+                TAG_DONE),
+
             TAG_DONE),
         // Colours
         MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
@@ -185,6 +228,8 @@ bool GuiWindow::HandleMenuPick()
 
     uint32 id = NO_MENU_ID;
 
+    const EFractal currentFractal = fractal;
+
     while (((id = IIntuition->IDoMethod(reinterpret_cast<Object *>(window->MenuStrip), MM_NEXTSELECT, 0, id))) != NO_MENU_ID) {
         switch(id) {
             case MID_Quit:
@@ -196,13 +241,39 @@ bool GuiWindow::HandleMenuPick()
             case MID_Mandelbrot:
                 fractal = EFractal::Mandelbrot;
                 break;
-            case MID_Julia:
-                fractal = EFractal::Julia;
+            case MID_Julia1:
+                fractal = EFractal::Julia1;
                 break;
+            case MID_Julia2:
+                fractal = EFractal::Julia2;
+                break;
+            case MID_Julia3:
+                fractal = EFractal::Julia3;
+                break;
+            case MID_Julia4:
+                fractal = EFractal::Julia4;
+                break;
+            case MID_Julia5:
+                fractal = EFractal::Julia5;
+                break;
+            case MID_Julia6:
+                fractal = EFractal::Julia6;
+                break;
+            case MID_Julia7:
+                fractal = EFractal::Julia7;
+                break;
+            case MID_Julia8:
+                fractal = EFractal::Julia8;
+                break;
+
             default:
                 logging::Error("Unhandled menu ID %lu", id);
                 break;
         }
+    }
+
+    if (fractal != currentFractal) {
+        ResetView();
     }
 
     return running;

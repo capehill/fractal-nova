@@ -194,19 +194,50 @@ void NovaContext::Reset()
 void NovaContext::UseProgram(const EFractal fractal)
 {
     const char* name;
+    Vertex complex {};
 
     switch (fractal) {
         default:
         case EFractal::Mandelbrot:
             name = "mandelbrot";
             break;
-        case EFractal::Julia:
+        case EFractal::Julia1:
             name = "julia";
+            complex = { -0.618f, 0.0f };
+            break;
+        case EFractal::Julia2:
+            name = "julia";
+            complex = { -0.4f, 0.6f };
+            break;
+        case EFractal::Julia3:
+            name = "julia";
+            complex = { 0.285f, 0.0f };
+            break;
+        case EFractal::Julia4:
+            name = "julia";
+            complex = { 0.285f, 0.01f };
+            break;
+        case EFractal::Julia5:
+            name = "julia";
+            complex = { 0.45f, 0.1428f };
+            break;
+        case EFractal::Julia6:
+            name = "julia";
+            complex = { -0.70176f, 0.3842f };
+            break;
+        case EFractal::Julia7:
+            name = "julia";
+            complex = { -0.835f, 0.232f };
+            break;
+        case EFractal::Julia8:
+            name = "julia";
+            complex = { -0.8f, 0.156f };
             break;
     }
 
     program.reset(); // Destroy old program first. Otherwise Program destructor removes ShaderPipeline afterwards!
     program = std::make_unique<Program>(context, iterations, name);
+    program->SetComplex(complex);
 }
 
 } // fractal-nova
