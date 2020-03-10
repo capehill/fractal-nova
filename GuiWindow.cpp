@@ -24,7 +24,7 @@ enum EMenu {
     MID_About,
     MID_Quit,
     MID_ResetView,
-    //
+    // Fractals
     MID_Mandelbrot,
     MID_Julia1,
     MID_Julia2,
@@ -34,9 +34,14 @@ enum EMenu {
     MID_Julia6,
     MID_Julia7,
     MID_Julia8,
-    //
+    // Palettes
     MID_Rainbow,
-    MID_RainbowRev
+    MID_RainbowRev,
+    MID_Red,
+    MID_Green,
+    MID_Blue,
+    MID_BlackAndWhite,
+    MID_BlackAndWhiteRev
 };
 
 Object* menu;
@@ -124,6 +129,31 @@ GuiWindow::GuiWindow()
                 MA_Type, T_ITEM,
                 MA_Label, "Rainbow rev.",
                 MA_ID, MID_RainbowRev,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Red",
+                MA_ID, MID_Red,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Green",
+                MA_ID, MID_Green,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Blue",
+                MA_ID, MID_Blue,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Black and white",
+                MA_ID, MID_BlackAndWhite,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Black and white rev.",
+                MA_ID, MID_BlackAndWhiteRev,
                 TAG_DONE),
             TAG_DONE),
         // The end
@@ -277,7 +307,21 @@ bool GuiWindow::HandleMenuPick()
             case MID_RainbowRev:
                 palette = EPalette::RainbowRev;
                 break;
-
+            case MID_Red:
+                palette = EPalette::Red;
+                break;
+            case MID_Green:
+                palette = EPalette::Green;
+                break;
+            case MID_Blue:
+                palette = EPalette::Blue;
+                break;
+            case MID_BlackAndWhite:
+                palette = EPalette::BlackAndWhite;
+                break;
+            case MID_BlackAndWhiteRev:
+                palette = EPalette::BlackAndWhiteRev;
+                break;
             default:
                 logging::Error("Unhandled menu ID %lu", id);
                 break;

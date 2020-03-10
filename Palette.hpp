@@ -27,8 +27,14 @@ struct Palette
     explicit Palette(EPalette palette, int size = 4 * 256);
 
     void Create(EPalette palette);
+
     void Rainbow();
     void RainbowRev();
+    void Red();
+    void Green();
+    void Blue();
+    void BlackAndWhite();
+    void BlackAndWhiteRev();
 
     void Add(const Color& c, float w);
     std::vector<Color> GetColorArray();

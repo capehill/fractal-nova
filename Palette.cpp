@@ -35,6 +35,36 @@ void Palette::RainbowRev()
     Add( { 255,   0,   0 }, 1.0f );
 }
 
+void Palette::Red()
+{
+    Add( {   0,   0,   0 }, 1.0f );
+    Add( { 255,   0,   0 }, 1.0f );
+}
+
+void Palette::Green()
+{
+    Add( {   0,   0,   0 }, 1.0f );
+    Add( {   0, 255,   0 }, 1.0f );
+}
+
+void Palette::Blue()
+{
+    Add( {   0,   0,   0 }, 1.0f );
+    Add( {   0,   0, 255 }, 1.0f );
+}
+
+void Palette::BlackAndWhite()
+{
+    Add( {   0,   0,   0 }, 1.0f );
+    Add( { 255, 255, 255 }, 1.0f );
+}
+
+void Palette::BlackAndWhiteRev()
+{
+    Add( { 255, 255, 255 }, 1.0f );
+    Add( {   0,   0,   0 }, 1.0f );
+}
+
 void Palette::Create(const EPalette palette)
 {
     switch (palette) {
@@ -42,6 +72,16 @@ void Palette::Create(const EPalette palette)
             return Rainbow();
         case EPalette::RainbowRev:
             return RainbowRev();
+        case EPalette::Red:
+            return Red();
+        case EPalette::Green:
+            return Green();
+        case EPalette::Blue:
+            return Blue();
+        case EPalette::BlackAndWhite:
+            return BlackAndWhite();
+        case EPalette::BlackAndWhiteRev:
+            return BlackAndWhiteRev();
         default:
             logging::Error("Unknown palette %d", static_cast<int>(palette));
             return Rainbow();

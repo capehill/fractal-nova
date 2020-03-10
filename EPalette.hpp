@@ -6,7 +6,12 @@ enum class EPalette
 {
     Unknown,
     Rainbow,
-    RainbowRev
+    RainbowRev,
+    Red,
+    Green,
+    Blue,
+    BlackAndWhite,
+    BlackAndWhiteRev
 };
 
 } // fractalnova

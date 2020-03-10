@@ -245,16 +245,8 @@ void NovaContext::UsePalette(const EPalette palette)
 
     logging::Log("Switch palette %d", static_cast<int>(palette));
 
-    switch (palette) {
-        case EPalette::Rainbow:
-        case EPalette::RainbowRev: {
-            Palette p { palette };
-            CreateTexture(p);
-            } break;
-        default:
-            logging::Error("Unknown palette %d", static_cast<int>(palette));
-            break;
-    }
+    Palette p { palette };
+    CreateTexture(p);
 }
 
 } // fractal-nova
