@@ -4,7 +4,6 @@
 #include "Logger.hpp"
 
 #include <proto/dos.h>
-//#include <proto/exec.h>
 
 #include <cstdio>
 #include <exception>
@@ -12,9 +11,9 @@
 namespace fractalnova {
 
 namespace {
-    constexpr double eventPeriod { 1.0 / 60 };
+    constexpr double eventPeriod { 1.0 / 60.0 };
 
-    static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 0.2 (13.02.2020)" };
+    static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 0.2 (11.03.2020)" };
 }
 
 struct Params {
@@ -40,9 +39,13 @@ void ParseArgs()
     struct RDArgs *result = IDOS->ReadArgs(pattern, (int32 *)&params, NULL);
 
     if (result) {
-        logging::Log("VSYNC [%s]\n", ToString(params.vsync));
-        logging::Log("Lazy clear [%s]\n", ToString(params.lazyClear));
-        logging::Log("Verbose [%s]\n", ToString(params.verbose));
+        if (params.verbose) {
+            logging::MakeVerbose();
+        }
+
+        logging::Log("VSYNC [%s]", ToString(params.vsync));
+        logging::Log("Lazy clear [%s]", ToString(params.lazyClear));
+        logging::Log("Verbose [%s]", ToString(params.verbose));
 
         if (params.iter) {
             iterations = *params.iter;
@@ -52,15 +55,11 @@ void ParseArgs()
                 iterations = 1000;
             }
         }
-        logging::Log("ITER [%ld]\n", iterations);
-
-        if (params.verbose) {
-            logging::MakeVerbose();
-        }
+        logging::Log("ITER [%ld]", iterations);
 
         IDOS->FreeArgs(result);
     } else {
-        logging::Error("Error when reading command-line arguments. Known parameters are: %s\n", pattern);
+        logging::Error("Error when reading command-line arguments. Known parameters are: %s", pattern);
     }
 }
 
@@ -143,11 +142,11 @@ int main(void)
         duration = timer.TicksToSeconds(finish - start);
 
     } catch (std::exception& e) {
-        logging::Error("Exception %s\n", e.what());
+        logging::Error("Exception %s", e.what());
     }
 
-    logging::Log("Frames %llu in %.1f second. FPS %.1f\n", frames, duration, frames / duration);
-    logging::Log("Events checked %llu. EPS %.1f\n", events, events / duration);
+    logging::Log("Frames %llu in %.1f second. FPS %.1f", frames, duration, frames / duration);
+    logging::Log("Events checked %llu. EPS %.1f", events, events / duration);
 
     return 0;
 }
