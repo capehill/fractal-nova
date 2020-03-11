@@ -413,7 +413,7 @@ bool GuiWindow::HandleRawKey(UWORD code)
 
 void GuiWindow::SetTitle(const char* title)
 {
-    IIntuition->SetWindowTitles(window, title, "Fractal Nova - Mandelbrot");
+    IIntuition->SetWindowTitles(window, title, name);
 }
 
 Vertex GuiWindow::GetPosition() const
