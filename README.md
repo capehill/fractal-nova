@@ -9,8 +9,9 @@ Warp3D Nova library v. 1.68.
 ## Controls
 
 Use mouse to pan display using the LMB.
+Use RMB to select a fractal and its palette from menu.
 Use mouse wheel (or CURSOR UP/DOWN) to zoom in and out.
-Hold SHIFT key to zoom 10x faster.
+Hold SHIFT key to zoom faster.
 Press SPACE bar to reset display.
 Press ESC key to quit.
 
