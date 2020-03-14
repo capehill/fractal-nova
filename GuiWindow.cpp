@@ -43,11 +43,9 @@ enum EMenu {
     MID_BlackAndWhiteRev
 };
 
-Object* menu;
-
 GuiWindow::GuiWindow()
 {
-    menu = IIntuition->NewObject(nullptr, "menuclass",
+    Object* menu = IIntuition->NewObject(nullptr, "menuclass",
         MA_Type, T_ROOT,
         // Main
         MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
