@@ -7,11 +7,12 @@
 
 namespace fractalnova {
 
-struct VertexBuffer;
-struct Shader;
+class VertexBuffer;
+class Shader;
 
-struct Program: public NovaObject
+class Program: public NovaObject
 {
+public:
     Program(W3DN_Context* context, int iterations, const char* name);
     ~Program();
 
@@ -23,6 +24,9 @@ struct Program: public NovaObject
     void UpdateVertexDBO() const;
     void UpdateFragmentDBO() const;
 
+    VertexBuffer* VboPtr() const;
+
+private:
     std::unique_ptr<VertexBuffer> vbo;
 
     std::unique_ptr<Shader> vertexShader;

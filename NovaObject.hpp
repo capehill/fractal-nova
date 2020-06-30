@@ -6,10 +6,12 @@
 
 namespace fractalnova {
 
-struct NovaObject
+class NovaObject
 {
+public:
     explicit NovaObject(W3DN_Context* context);
 
+protected:
     std::string ErrorToString(W3DN_ErrorCode errCode) const;
     void ThrowOnError(W3DN_ErrorCode errCode, const std::string& message) const;
 

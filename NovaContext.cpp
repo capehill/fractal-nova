@@ -90,14 +90,14 @@ void NovaContext::Resize()
     height = window.Height();
 
     if (!backBuffer ||
-        IGraphics->GetBitMapAttr(backBuffer->bitMap, BMA_ACTUALWIDTH) < width ||
-        IGraphics->GetBitMapAttr(backBuffer->bitMap, BMA_HEIGHT) < height)
+        IGraphics->GetBitMapAttr(backBuffer->Data(), BMA_ACTUALWIDTH) < width ||
+        IGraphics->GetBitMapAttr(backBuffer->Data(), BMA_HEIGHT) < height)
     {
-        backBuffer = std::make_unique<BackBuffer>(width, height, window.window->RPort->BitMap);
+        backBuffer = std::make_unique<BackBuffer>(width, height, window.WindowPtr()->RPort->BitMap);
     }
 
     W3DN_ErrorCode errCode = context->FBBindBufferTags(nullptr, W3DN_FB_COLOUR_BUFFER_0,
-        W3DNTag_BitMap, backBuffer->bitMap,
+        W3DNTag_BitMap, backBuffer->Data(),
         TAG_DONE);
 
     ThrowOnError(errCode, "Failed to bind buffer to frame buffer object");
@@ -124,7 +124,7 @@ void NovaContext::Draw() const
     program->UpdateVertexDBO();
     program->UpdateFragmentDBO();
 
-    const W3DN_ErrorCode errCode = context->DrawArrays(nullptr, W3DN_PRIM_TRISTRIP, 0 /* base */, program->vbo->vertexCount);
+    const W3DN_ErrorCode errCode = context->DrawArrays(nullptr, W3DN_PRIM_TRISTRIP, 0 /* base */, program->VboPtr()->vertexCount);
 
     ThrowOnError(errCode, "Failed to draw arrays");
 }
@@ -139,8 +139,8 @@ void NovaContext::SwapBuffers()
         ThrowOnError(errCode, "Submit failed");
     }
 
-    const uint32 winw = window.window->Width - (window.window->BorderLeft + window.window->BorderRight);
-    const uint32 winh = window.window->Height - (window.window->BorderTop + window.window->BorderBottom);
+    const uint32 winw = window.WindowPtr()->Width - (window.WindowPtr()->BorderLeft + window.WindowPtr()->BorderRight);
+    const uint32 winh = window.WindowPtr()->Height - (window.WindowPtr()->BorderTop + window.WindowPtr()->BorderBottom);
 
     width = std::min(winw, width);
     height = std::min(winh, height);
@@ -153,8 +153,8 @@ void NovaContext::SwapBuffers()
         IGraphics->WaitTOF();
     }
 
-    IGraphics->BltBitMapRastPort(backBuffer->bitMap, 0, 0, window.window->RPort, window.window->BorderLeft,
-        window.window->BorderTop, width, height, 0xC0);
+    IGraphics->BltBitMapRastPort(backBuffer->Data(), 0, 0, window.WindowPtr()->RPort, window.WindowPtr()->BorderLeft,
+        window.WindowPtr()->BorderTop, width, height, 0xC0);
 }
 
 void NovaContext::SetPosition(const Vertex& pos)

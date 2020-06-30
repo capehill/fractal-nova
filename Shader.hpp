@@ -8,7 +8,7 @@
 
 namespace fractalnova {
 
-struct DataBuffer;
+class DataBuffer;
 
 struct VertexShaderData {
     float angle;
@@ -21,13 +21,17 @@ struct FragmentShaderData {
     Vertex complex;
 };
 
-struct Shader: public NovaObject
+class Shader: public NovaObject
 {
+public:
     Shader(W3DN_Context* context, W3DN_ShaderType shaderType);
     ~Shader();
 
     void Compile(const std::string& fileName);
+    DataBuffer* DboPtr() const;
+    W3DN_Shader* Ptr() const;
 
+private:
     std::unique_ptr<DataBuffer> dbo;
 
     W3DN_Shader* shader { nullptr };

@@ -227,7 +227,7 @@ bool GuiWindow::Run()
                 running = HandleRawKey(msg->Code);
                 break;
             case IDCMP_REFRESHWINDOW:
-                refresh = true;
+                Set(EFlag::Refresh);
                 break;
             default:
                 logging::Error("Unknown event %lu", msg->Class);
@@ -338,7 +338,7 @@ void GuiWindow::HandleMouseButtons(UWORD code)
         case IECODE_LBUTTON:
             if (!(code & IECODE_UP_PREFIX)) {
                 //logging::Log("%u, %u", msg->MouseX, msg->MouseY);
-                refresh = true;
+                Set(EFlag::Refresh);
                 panning = true;
             } else {
                 panning = false;
@@ -352,7 +352,7 @@ void GuiWindow::HandleMouseMove(int mouseX, int mouseY)
     if (panning) {
         position.x += mouseX / static_cast<float>(width/2) / zoom;
         position.y += mouseY / static_cast<float>(height/2) / zoom;
-        refresh = true;
+        Set(EFlag::Refresh);
     }
 }
 
@@ -366,7 +366,7 @@ void GuiWindow::HandleNewSize()
         throw std::runtime_error("Failed to get window attributes");
     }
 
-    resize = true;
+    Set(EFlag::Resize);
 }
 
 bool GuiWindow::HandleRawKey(UWORD code)
@@ -447,7 +447,7 @@ void GuiWindow::ZoomIn()
         zoom = maxZoom;
     }
 
-    refresh = true;
+    Set(EFlag::Refresh);
 }
 
 void GuiWindow::ZoomOut()
@@ -461,13 +461,13 @@ void GuiWindow::ZoomOut()
         zoom = minZoom;
     }
 
-    refresh = true;
+    Set(EFlag::Refresh);
 }
 
 void GuiWindow::ResetView()
 {
     zoom = 1.0f;
-    reset = true;
+    Set(EFlag::Reset);
 }
 
 uint32 GuiWindow::Width() const
@@ -488,6 +488,26 @@ EFractal GuiWindow::GetFractal() const
 EPalette GuiWindow::GetPalette() const
 {
     return palette;
+}
+
+bool GuiWindow::Flagged(const EFlag flag) const
+{
+    return flags & static_cast<uint32>(flag);
+}
+
+void GuiWindow::Set(const EFlag flag)
+{
+    flags |= static_cast<uint32>(flag);
+}
+
+void GuiWindow::Clear(const EFlag flag)
+{
+    flags &= ~static_cast<uint32>(flag);
+}
+
+Window* GuiWindow::WindowPtr() const
+{
+    return window;
 }
 
 } // fractalnova

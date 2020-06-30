@@ -58,4 +58,14 @@ void Shader::Compile(const std::string& fileName)
     }
 }
 
+DataBuffer* Shader::DboPtr() const
+{
+    return dbo.get();
+}
+
+W3DN_Shader* Shader::Ptr() const
+{
+    return shader;
+}
+
 } // fractalnova

@@ -4,14 +4,16 @@
 
 namespace fractalnova {
 
-struct VertexBuffer: public NovaObject
+class VertexBuffer: public NovaObject
 {
+public:
     explicit VertexBuffer(W3DN_Context* context);
     ~VertexBuffer();
 
-    W3DN_VertexBuffer* vbo { nullptr };
-
     static constexpr uint32 vertexCount { 4 };
+
+private:
+    W3DN_VertexBuffer* vbo { nullptr };
 };
 
 } // fractalnova

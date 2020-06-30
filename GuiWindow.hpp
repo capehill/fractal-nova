@@ -8,18 +8,20 @@
 
 namespace fractalnova {
 
-struct GuiWindow
+enum class EFlag
 {
+    Refresh = 1,
+    Resize = 2,
+    Reset = 4
+};
+
+class GuiWindow
+{
+public:
     GuiWindow();
     ~GuiWindow();
 
     bool Run();
-    void HandleExtendedMouse(struct IntuiWheelData* data);
-    bool HandleMenuPick();
-    void HandleMouseButtons(UWORD code);
-    void HandleMouseMove(int mouseX, int mouseY);
-    void HandleNewSize();
-    bool HandleRawKey(UWORD code);
 
     void SetTitle(const char* title);
 
@@ -27,23 +29,33 @@ struct GuiWindow
     void ClearPosition();
     float GetZoom() const;
 
-    void ResetView();
-
-    float GetZoomStep() const;
-    void ZoomIn();
-    void ZoomOut();
-
-    struct Window* window { nullptr };
-
     uint32 Width() const;
     uint32 Height() const;
 
     EFractal GetFractal() const;
     EPalette GetPalette() const;
 
-    mutable bool resize { false };
-    mutable bool refresh { true };
-    mutable bool reset { false };
+    bool Flagged(EFlag flag) const;
+    void Set(EFlag flag);
+    void Clear(EFlag flag);
+
+    Window* WindowPtr() const;
+
+private:
+    void HandleExtendedMouse(struct IntuiWheelData* data);
+    bool HandleMenuPick();
+    void HandleMouseButtons(UWORD code);
+    void HandleMouseMove(int mouseX, int mouseY);
+    void HandleNewSize();
+    bool HandleRawKey(UWORD code);
+
+    void ResetView();
+
+    float GetZoomStep() const;
+    void ZoomIn();
+    void ZoomOut();
+
+    Window* window { nullptr };
 
     bool panning { false };
     bool fastZoom { false };
@@ -55,6 +67,8 @@ struct GuiWindow
 
     EFractal fractal { EFractal::Mandelbrot };
     EPalette palette { EPalette::Rainbow };
+
+    uint32 flags { 0 };
 };
 
 } // fractalnova

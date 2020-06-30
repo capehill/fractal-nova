@@ -29,5 +29,10 @@ BackBuffer::~BackBuffer()
     }
 }
 
+BitMap* BackBuffer::Data() const
+{
+    return bitMap;
+}
+
 } // fractalnova
 

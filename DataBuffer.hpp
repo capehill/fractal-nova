@@ -4,11 +4,15 @@
 
 namespace fractalnova {
 
-struct DataBuffer: public NovaObject
+class DataBuffer: public NovaObject
 {
+public:
     DataBuffer(W3DN_Context* context, W3DN_ShaderType shaderType, std::size_t size, W3DN_Shader* shader);
     ~DataBuffer();
 
+    W3DN_DataBuffer* Ptr() const;
+
+private:
     W3DN_ShaderType shaderType { W3DNST_END };
     W3DN_DataBuffer* dbo { nullptr };
 };

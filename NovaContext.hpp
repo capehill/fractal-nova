@@ -10,24 +10,20 @@
 
 namespace fractalnova {
 
-struct GuiWindow;
+class GuiWindow;
 
-struct Texture;
-struct Program;
-struct BackBuffer;
-struct Vertex;
-struct Palette;
+class Texture;
+class Program;
+class BackBuffer;
+class Vertex;
+class Palette;
 
-struct NovaContext: public NovaObject
+class NovaContext: public NovaObject
 {
+public:
+
     NovaContext(const GuiWindow& window, bool vsync, int iterations);
     ~NovaContext();
-
-    void CloseLib();
-
-    void CreateTexture(Palette& palette);
-    void CreateRainbowPalette();
-    void CreateRainbowRevPalette();
 
     void Resize();
     void Clear() const;
@@ -40,6 +36,13 @@ struct NovaContext: public NovaObject
 
     void UseProgram(EFractal fractal);
     void UsePalette(EPalette palette);
+
+private:
+    void CloseLib();
+
+    void CreateTexture(Palette& palette);
+    void CreateRainbowPalette();
+    void CreateRainbowRevPalette();
 
     std::unique_ptr<BackBuffer> backBuffer;
     std::unique_ptr<Program> program;

@@ -36,7 +36,7 @@ void ParseArgs()
 {
     const char* const pattern = "VSYNC/S,ITER/N,LAZYCLEAR/S,VERBOSE/S";
 
-    struct RDArgs *result = IDOS->ReadArgs(pattern, (int32 *)&params, NULL);
+    struct RDArgs *result = IDOS->ReadArgs(pattern, (int32 *)&params, nullptr);
 
     if (result) {
         if (params.verbose) {
@@ -93,23 +93,23 @@ int main(void)
                 eventTicks = now;
                 events++;
 
-                if (window.resize) {
+                if (window.Flagged(fractalnova::EFlag::Resize)) {
                     context.Resize();
-                    window.refresh = true;
-                    window.resize = false;
+                    window.Set(fractalnova::EFlag::Refresh);
+                    window.Clear(fractalnova::EFlag::Resize);
                 }
 
-                if (window.reset) {
+                if (window.Flagged(fractalnova::EFlag::Reset)) {
                     context.Reset();
-                    window.refresh = true;
-                    window.reset = false;
+                    window.Set(fractalnova::EFlag::Refresh);
+                    window.Clear(fractalnova::EFlag::Reset);
                 }
 
                 context.UseProgram(window.GetFractal());
                 context.UsePalette(window.GetPalette());
             }
 
-            if (window.refresh) {
+            if (window.Flagged(fractalnova::EFlag::Refresh)) {
                 const float zoom = window.GetZoom();
 
                 context.SetZoom(zoom);

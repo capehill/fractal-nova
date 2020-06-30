@@ -25,8 +25,8 @@ Program::Program(W3DN_Context* context, const int iterations, const char* name):
 
     W3DN_ErrorCode errCode;
     shaderPipeline = context->CreateShaderPipelineTags(&errCode,
-        W3DNTag_Shader, vertexShader->shader,
-        W3DNTag_Shader, fragmentShader->shader,
+        W3DNTag_Shader, vertexShader->Ptr(),
+        W3DNTag_Shader, fragmentShader->Ptr(),
         TAG_DONE);
 
     if (!shaderPipeline) {
@@ -60,7 +60,7 @@ void Program::UpdateVertexDBO() const
 
     static float angle = 0.0f;
 
-    W3DN_BufferLock* lock = context->DBOLock(&errCode, vertexShader->dbo->dbo, 0 /* readOffset */, 0 /* readSize */);
+    W3DN_BufferLock* lock = context->DBOLock(&errCode, vertexShader->DboPtr()->Ptr(), 0 /* readOffset */, 0 /* readSize */);
 
     if (!lock) {
         ThrowOnError(errCode, "Failed to lock data buffer object (vertex)");
@@ -103,7 +103,7 @@ void Program::UpdateFragmentDBO() const
     }
 #endif
 
-    W3DN_BufferLock* lock = context->DBOLock(&errCode, fragmentShader->dbo->dbo, 0 /* readOffset */, 0 /* readSize */);
+    W3DN_BufferLock* lock = context->DBOLock(&errCode, fragmentShader->DboPtr()->Ptr(), 0 /* readOffset */, 0 /* readSize */);
 
     if (!lock) {
         ThrowOnError(errCode, "Failed to lock data buffer object (fragment)");
@@ -138,6 +138,11 @@ void Program::SetZoom(const float z)
 void Program::Reset()
 {
     oldPosition = { 0.0f, 0.0f };
+}
+
+VertexBuffer* Program::VboPtr() const
+{
+    return vbo.get();
 }
 
 } // fractalnova

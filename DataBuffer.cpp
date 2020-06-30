@@ -30,5 +30,10 @@ DataBuffer::~DataBuffer()
     }
 }
 
+W3DN_DataBuffer* DataBuffer::Ptr() const
+{
+    return dbo;
+}
+
 } // fractalnova
 

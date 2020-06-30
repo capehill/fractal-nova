@@ -5,17 +5,20 @@
 
 namespace fractalnova {
 
-struct Timer
+class Timer
 {
+public:
+
     Timer();
     ~Timer();
 
+    uint64 GetTicks() const;
+    double TicksToSeconds(uint64 ticks) const;
+
+private:
     void FreeIoRequest();
     void FreeMsgPort();
     void CloseDevice();
-
-    uint64 GetTicks() const;
-    double TicksToSeconds(uint64 ticks) const;
 
     struct MsgPort* port { nullptr };
     struct TimeRequest* request { nullptr };
