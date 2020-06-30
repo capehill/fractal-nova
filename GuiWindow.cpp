@@ -20,31 +20,31 @@ namespace {
     constexpr const char* const name { "Fractal Nova" };
 }
 
-enum EMenu {
-    MID_Iconify = 1,
-    MID_About,
-    MID_Quit,
-    MID_ResetView,
+enum class EMenu {
+    Iconify = 1,
+    About,
+    Quit,
+    ResetView,
     // Fractals
-    MID_Mandelbrot,
-    MID_Julia1,
-    MID_Julia2,
-    MID_Julia3,
-    MID_Julia4,
-    MID_Julia5,
-    MID_Julia6,
-    MID_Julia7,
-    MID_Julia8,
-    MID_Julia9,
-    MID_Julia10,
+    Mandelbrot,
+    Julia1,
+    Julia2,
+    Julia3,
+    Julia4,
+    Julia5,
+    Julia6,
+    Julia7,
+    Julia8,
+    Julia9,
+    Julia10,
     // Palettes
-    MID_Rainbow,
-    MID_RainbowRev,
-    MID_Red,
-    MID_Green,
-    MID_Blue,
-    MID_BlackAndWhite,
-    MID_BlackAndWhiteRev
+    Rainbow,
+    RainbowRev,
+    Red,
+    Green,
+    Blue,
+    BlackAndWhite,
+    BlackAndWhiteRev
 };
 
 Object* GuiWindow::CreateMenu()
@@ -58,12 +58,12 @@ Object* GuiWindow::CreateMenu()
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Reset view",
-                MA_ID, MID_ResetView,
+                MA_ID, EMenu::ResetView,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Quit",
-                MA_ID, MID_Quit,
+                MA_ID, EMenu::Quit,
                 TAG_DONE),
             TAG_DONE),
         // Fractal
@@ -73,57 +73,57 @@ Object* GuiWindow::CreateMenu()
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Manderbrot",
-                MA_ID, MID_Mandelbrot,
+                MA_ID, EMenu::Mandelbrot,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Julia 1",
-                MA_ID, MID_Julia1,
+                MA_ID, EMenu::Julia1,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Julia 2",
-                MA_ID, MID_Julia2,
+                MA_ID, EMenu::Julia2,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Julia 3",
-                MA_ID, MID_Julia3,
+                MA_ID, EMenu::Julia3,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Julia 4",
-                MA_ID, MID_Julia4,
+                MA_ID, EMenu::Julia4,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Julia 5",
-                MA_ID, MID_Julia5,
+                MA_ID, EMenu::Julia5,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Julia 6",
-                MA_ID, MID_Julia6,
+                MA_ID, EMenu::Julia6,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Julia 7",
-                MA_ID, MID_Julia7,
+                MA_ID, EMenu::Julia7,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Julia 8",
-                MA_ID, MID_Julia8,
+                MA_ID, EMenu::Julia8,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Julia 9",
-                MA_ID, MID_Julia9,
+                MA_ID, EMenu::Julia9,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Julia 10",
-                MA_ID, MID_Julia10,
+                MA_ID, EMenu::Julia10,
                 TAG_DONE),
 
             TAG_DONE),
@@ -134,37 +134,37 @@ Object* GuiWindow::CreateMenu()
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Rainbow",
-                MA_ID, MID_Rainbow,
+                MA_ID, EMenu::Rainbow,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Rainbow rev.",
-                MA_ID, MID_RainbowRev,
+                MA_ID, EMenu::RainbowRev,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Red",
-                MA_ID, MID_Red,
+                MA_ID, EMenu::Red,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Green",
-                MA_ID, MID_Green,
+                MA_ID, EMenu::Green,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Blue",
-                MA_ID, MID_Blue,
+                MA_ID, EMenu::Blue,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Black and white",
-                MA_ID, MID_BlackAndWhite,
+                MA_ID, EMenu::BlackAndWhite,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Black and white rev.",
-                MA_ID, MID_BlackAndWhiteRev,
+                MA_ID, EMenu::BlackAndWhiteRev,
                 TAG_DONE),
             TAG_DONE),
         // The end
@@ -279,71 +279,71 @@ bool GuiWindow::HandleMenuPick()
     const EFractal currentFractal = fractal;
 
     while (((id = IIntuition->IDoMethod(reinterpret_cast<Object *>(window->MenuStrip), MM_NEXTSELECT, 0, id))) != NO_MENU_ID) {
-        switch(id) {
-            case MID_Quit:
+        switch (static_cast<EMenu>(id)) {
+            case EMenu::Quit:
                 running = false;
                 break;
-            case MID_ResetView:
+            case EMenu::ResetView:
                 ResetView();
                 break;
 
             // Fractals
 
-            case MID_Mandelbrot:
+            case EMenu::Mandelbrot:
                 fractal = EFractal::Mandelbrot;
                 break;
-            case MID_Julia1:
+            case EMenu::Julia1:
                 fractal = EFractal::Julia1;
                 break;
-            case MID_Julia2:
+            case EMenu::Julia2:
                 fractal = EFractal::Julia2;
                 break;
-            case MID_Julia3:
+            case EMenu::Julia3:
                 fractal = EFractal::Julia3;
                 break;
-            case MID_Julia4:
+            case EMenu::Julia4:
                 fractal = EFractal::Julia4;
                 break;
-            case MID_Julia5:
+            case EMenu::Julia5:
                 fractal = EFractal::Julia5;
                 break;
-            case MID_Julia6:
+            case EMenu::Julia6:
                 fractal = EFractal::Julia6;
                 break;
-            case MID_Julia7:
+            case EMenu::Julia7:
                 fractal = EFractal::Julia7;
                 break;
-            case MID_Julia8:
+            case EMenu::Julia8:
                 fractal = EFractal::Julia8;
                 break;
-            case MID_Julia9:
+            case EMenu::Julia9:
                 fractal = EFractal::Julia9;
                 break;
-            case MID_Julia10:
+            case EMenu::Julia10:
                 fractal = EFractal::Julia10;
                 break;
 
             // Palettes
 
-            case MID_Rainbow:
+            case EMenu::Rainbow:
                 palette = EPalette::Rainbow;
                 break;
-            case MID_RainbowRev:
+            case EMenu::RainbowRev:
                 palette = EPalette::RainbowRev;
                 break;
-            case MID_Red:
+            case EMenu::Red:
                 palette = EPalette::Red;
                 break;
-            case MID_Green:
+            case EMenu::Green:
                 palette = EPalette::Green;
                 break;
-            case MID_Blue:
+            case EMenu::Blue:
                 palette = EPalette::Blue;
                 break;
-            case MID_BlackAndWhite:
+            case EMenu::BlackAndWhite:
                 palette = EPalette::BlackAndWhite;
                 break;
-            case MID_BlackAndWhiteRev:
+            case EMenu::BlackAndWhiteRev:
                 palette = EPalette::BlackAndWhiteRev;
                 break;
             default:
