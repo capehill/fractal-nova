@@ -13,7 +13,7 @@ namespace fractalnova {
 namespace {
     constexpr double eventPeriod { 1.0 / 60.0 };
 
-    static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 0.2 (11.03.2020)" };
+    static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 0.3 (30.06.2020)" };
 }
 
 struct Params {
