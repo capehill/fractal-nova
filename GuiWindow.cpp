@@ -185,6 +185,8 @@ GuiWindow::GuiWindow()
     if (!window) {
         throw std::runtime_error("Failed to open window");
     }
+
+    Set(EFlag::Refresh);
 }
 
 GuiWindow::~GuiWindow()
