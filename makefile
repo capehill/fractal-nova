@@ -14,6 +14,9 @@ shaders/julia.frag.spv
 OBJS=main.o GuiWindow.o NovaContext.o Timer.o Palette.o NovaObject.o Texture.o DataBuffer.o Shader.o VertexBuffer.o Program.o BackBuffer.o Logger.o
 DEPS = $(OBJS:.o=.d) 
 
+$(NAME): $(NAME)_debug
+	strip $(NAME)_debug -o $(NAME)
+
 $(NAME)_debug: $(OBJS) $(SHADERS)
 	g++ -o $@ $(OBJS) $(LDFLAGS)
 
@@ -32,9 +35,6 @@ shaders/%.frag.spv: %.frag
 
 clean:
 	delete $(OBJS) $(SHADERS)
-
-strip:
-	strip $(NAME)_debug -o $(NAME)
 
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPS)
