@@ -47,7 +47,7 @@ enum EMenu {
     MID_BlackAndWhiteRev
 };
 
-GuiWindow::GuiWindow()
+Object* GuiWindow::CreateMenu()
 {
     Object* menu = IIntuition->NewObject(nullptr, "menuclass",
         MA_Type, T_ROOT,
@@ -174,6 +174,11 @@ GuiWindow::GuiWindow()
         logging::Error("Failed to create menus");
     }
 
+    return menu;
+}
+
+GuiWindow::GuiWindow()
+{
     window = IIntuition->OpenWindowTags(nullptr,
         WA_Title, name,
         WA_ScreenTitle, name,
@@ -189,7 +194,7 @@ GuiWindow::GuiWindow()
         WA_InnerHeight, height,
         WA_MaxHeight, 2048,
         WA_MaxWidth, 2048,
-        WA_MenuStrip, menu,
+        WA_MenuStrip, CreateMenu(),
         WA_MinHeight, 200,
         WA_MinWidth, 200,
         WA_SimpleRefresh, TRUE,

@@ -45,6 +45,8 @@ public:
     Window* WindowPtr() const;
 
 private:
+    Object* CreateMenu();
+
     void HandleExtendedMouse(struct IntuiWheelData* data);
     bool HandleMenuPick();
     void HandleMouseButtons(UWORD code);
