@@ -139,12 +139,6 @@ void NovaContext::SwapBuffers()
         ThrowOnError(errCode, "Submit failed");
     }
 
-    const uint32 winw = window.WindowPtr()->Width - (window.WindowPtr()->BorderLeft + window.WindowPtr()->BorderRight);
-    const uint32 winh = window.WindowPtr()->Height - (window.WindowPtr()->BorderTop + window.WindowPtr()->BorderBottom);
-
-    width = std::min(winw, width);
-    height = std::min(winh, height);
-
     errCode = context->WaitDone(submitID, 0);
 
     ThrowOnError(errCode, "WaitDone failed");
@@ -153,8 +147,7 @@ void NovaContext::SwapBuffers()
         IGraphics->WaitTOF();
     }
 
-    IGraphics->BltBitMapRastPort(backBuffer->Data(), 0, 0, window.WindowPtr()->RPort, window.WindowPtr()->BorderLeft,
-        window.WindowPtr()->BorderTop, width, height, 0xC0);
+    window.Draw(backBuffer.get());
 }
 
 void NovaContext::SetPosition(const Vertex& pos)

@@ -1,8 +1,10 @@
 #include "GuiWindow.hpp"
 #include "Logger.hpp"
+#include "BackBuffer.hpp"
 
 #include <proto/exec.h>
 #include <proto/intuition.h>
+#include <proto/graphics.h>
 
 #include <libraries/keymap.h>
 #include <libraries/gadtools.h>
@@ -510,6 +512,20 @@ void GuiWindow::Clear(const EFlag flag)
 Window* GuiWindow::WindowPtr() const
 {
     return window;
+}
+
+void GuiWindow::Draw(BackBuffer* backBuffer) const
+{
+    const uint32 winw = window->Width - (window->BorderLeft + window->BorderRight);
+    const uint32 winh = window->Height - (window->BorderTop + window->BorderBottom);
+
+    IGraphics->BltBitMapRastPort(backBuffer->Data(), 0, 0, window->RPort,
+        window->BorderLeft,
+        window->BorderTop,
+        std::min(winw, width),
+        std::min(winh, height),
+        0xC0);
+
 }
 
 } // fractalnova

@@ -15,6 +15,8 @@ enum class EFlag
     Reset = 4
 };
 
+class BackBuffer;
+
 class GuiWindow
 {
 public:
@@ -22,6 +24,7 @@ public:
     ~GuiWindow();
 
     bool Run();
+    void Draw(BackBuffer* backBuffer) const;
 
     void SetTitle(const char* title);
 
