@@ -14,6 +14,8 @@ enum class EFractal
     Julia6,
     Julia7,
     Julia8,
+    Julia9,
+    Julia10
 };
 
 } // fractalnova

@@ -216,6 +216,14 @@ void NovaContext::UseProgram(const EFractal fractal)
             name = "julia";
             complex = { -0.8f, 0.156f };
             break;
+        case EFractal::Julia9:
+            name = "julia";
+            complex = { -0.7269f, 0.1889f };
+            break;
+        case EFractal::Julia10:
+            name = "julia";
+            complex = { 0.0, -0.8f };
+            break;
         default:
             logging::Error("Unknown fractal %d", static_cast<int>(fractal));
             break;

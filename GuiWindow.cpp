@@ -35,6 +35,8 @@ enum EMenu {
     MID_Julia6,
     MID_Julia7,
     MID_Julia8,
+    MID_Julia9,
+    MID_Julia10,
     // Palettes
     MID_Rainbow,
     MID_RainbowRev,
@@ -112,6 +114,16 @@ GuiWindow::GuiWindow()
                 MA_Type, T_ITEM,
                 MA_Label, "Julia 8",
                 MA_ID, MID_Julia8,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Julia 9",
+                MA_ID, MID_Julia9,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
+                MA_Label, "Julia 10",
+                MA_ID, MID_Julia10,
                 TAG_DONE),
 
             TAG_DONE),
@@ -298,6 +310,12 @@ bool GuiWindow::HandleMenuPick()
                 break;
             case MID_Julia8:
                 fractal = EFractal::Julia8;
+                break;
+            case MID_Julia9:
+                fractal = EFractal::Julia9;
+                break;
+            case MID_Julia10:
+                fractal = EFractal::Julia10;
                 break;
 
             // Palettes
