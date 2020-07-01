@@ -10,9 +10,8 @@ namespace fractalnova {
 
 enum class EFlag
 {
-    Refresh = 1,
-    Resize = 2,
-    Reset = 4
+    Resize = 1,
+    Reset = 2
 };
 
 class BackBuffer;

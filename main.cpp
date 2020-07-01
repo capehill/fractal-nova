@@ -10,11 +10,9 @@
 
 namespace fractalnova {
 
-namespace {
-    constexpr double eventPeriod { 1.0 / 60.0 };
+static constexpr double eventPeriod { 1.0 / 60.0 };
 
-    static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 0.3 (30.06.2020)" };
-}
+static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 1.0 (1.7.2020)" };
 
 struct Params {
     LONG vsync;
@@ -69,84 +67,77 @@ int main(void)
 {
     uint64 frames { 0 };
     uint64 events { 0 };
-    double duration { 0.0 };
+    //double duration { 0.0 };
 
-    fractalnova::ParseArgs();
+    using namespace fractalnova;
+
+    ParseArgs();
 
     try {
-        fractalnova::GuiWindow window;
-        fractalnova::NovaContext context { window, fractalnova::params.vsync, fractalnova::iterations };
-        fractalnova::Timer timer;
+        GuiWindow window;
+        NovaContext context { window, params.vsync, iterations };
+        Timer timer;
 
         const uint64 start = timer.GetTicks();
         uint64 eventTicks = start;
         uint64 fpsTicks = start;
         uint64 lastFrames = 0;
 
-        bool running { true };
-
-        while (running) {
+        while (true) {
             const uint64 now = timer.GetTicks();
 
-            if (timer.TicksToSeconds(now - eventTicks) >= fractalnova::eventPeriod) {
-                running = window.Run();
+            if (timer.TicksToSeconds(now - eventTicks) >= eventPeriod) {
+                if (!window.Run()) {
+                    break;
+                }
+
                 eventTicks = now;
                 events++;
 
-                if (window.Flagged(fractalnova::EFlag::Resize)) {
+                if (window.Flagged(EFlag::Resize)) {
                     context.Resize();
-                    window.Set(fractalnova::EFlag::Refresh);
-                    window.Clear(fractalnova::EFlag::Resize);
                 }
 
-                if (window.Flagged(fractalnova::EFlag::Reset)) {
+                if (window.Flagged(EFlag::Reset)) {
                     context.Reset();
-                    window.Set(fractalnova::EFlag::Refresh);
-                    window.Clear(fractalnova::EFlag::Reset);
                 }
 
                 context.UseProgram(window.GetFractal());
                 context.UsePalette(window.GetPalette());
-            }
-
-            if (window.Flagged(fractalnova::EFlag::Refresh)) {
-                const float zoom = window.GetZoom();
-
-                context.SetZoom(zoom);
+                context.SetZoom(window.GetZoom());
                 context.SetPosition(window.GetPosition());
-                window.ClearPosition();
-                if (!fractalnova::params.lazyClear) {
-                    context.Clear();
-                }
-                context.Draw();
-                context.SwapBuffers();
-                //window.refresh = false;
-                frames++;
-
-                const double passed = timer.TicksToSeconds(now - fpsTicks);
-                if (passed >= 1.0) {
-                    static char buffer[64];
-                    snprintf(buffer, sizeof(buffer), "FPS %.1f, zoom %.1f", (frames - lastFrames) / passed, zoom);
-                    if (fractalnova::params.lazyClear) {
-                        context.Clear();
-                    }
-                    window.SetTitle(buffer);
-                    fpsTicks = now;
-                    lastFrames = frames;
-                }
             }
 
+            const double passed = timer.TicksToSeconds(now - fpsTicks);
+
+            if (!params.lazyClear || passed >= 1.0) {
+                context.Clear();
+            }
+
+            context.Draw();
+            context.SwapBuffers();
+            context.SetPosition({0.0f, 0.0f});
+
+            frames++;
+
+            if (passed >= 1.0) {
+                static char buffer[64];
+                snprintf(buffer, sizeof(buffer), "FPS %.2f, zoom %.1f", (frames - lastFrames) / passed, window.GetZoom());
+                window.SetTitle(buffer);
+                fpsTicks = now;
+                lastFrames = frames;
+            }
         }
 
-        const uint64 finish = timer.GetTicks();
-        duration = timer.TicksToSeconds(finish - start);
+        //const uint64 finish = timer.GetTicks();
+        //duration = timer.TicksToSeconds(finish - start);
 
     } catch (std::exception& e) {
         logging::Error("Exception %s", e.what());
     }
 
-    logging::Log("Frames %llu in %.1f second. FPS %.1f", frames, duration, frames / duration);
-    logging::Log("Events checked %llu. EPS %.1f", events, events / duration);
+    //logging::Log("Frames %llu in %.1f second. FPS %.1f", frames, duration, frames / duration);
+    //logging::Log("Events checked %llu. EPS %.1f", events, events / duration);
 
     return 0;
 }

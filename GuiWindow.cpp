@@ -16,9 +16,7 @@
 
 namespace fractalnova {
 
-namespace {
-    constexpr const char* const name { "Fractal Nova" };
-}
+static const char* const name { "Fractal Nova" };
 
 enum class EMenu {
     Iconify = 1,
@@ -204,8 +202,6 @@ GuiWindow::GuiWindow()
     if (!window) {
         throw std::runtime_error("Failed to open window");
     }
-
-    Set(EFlag::Refresh);
 }
 
 GuiWindow::~GuiWindow()
@@ -223,6 +219,7 @@ bool GuiWindow::Run()
     bool running { true };
 
     position = { 0.0f, 0.0f };
+    flags = 0;
 
     while ((msg = (struct IntuiMessage *)IExec->GetMsg(window->UserPort))) {
         switch (msg->Class) {
@@ -248,7 +245,6 @@ bool GuiWindow::Run()
                 running = HandleRawKey(msg->Code);
                 break;
             case IDCMP_REFRESHWINDOW:
-                Set(EFlag::Refresh);
                 break;
             default:
                 logging::Error("Unknown event %lu", msg->Class);
@@ -365,7 +361,6 @@ void GuiWindow::HandleMouseButtons(UWORD code)
         case IECODE_LBUTTON:
             if (!(code & IECODE_UP_PREFIX)) {
                 //logging::Log("%u, %u", msg->MouseX, msg->MouseY);
-                Set(EFlag::Refresh);
                 panning = true;
             } else {
                 panning = false;
@@ -377,9 +372,8 @@ void GuiWindow::HandleMouseButtons(UWORD code)
 void GuiWindow::HandleMouseMove(int mouseX, int mouseY)
 {
     if (panning) {
-        position.x += mouseX / static_cast<float>(width/2) / zoom;
-        position.y += mouseY / static_cast<float>(height/2) / zoom;
-        Set(EFlag::Refresh);
+        position.x += mouseX / static_cast<float>(width / 2) / zoom;
+        position.y += mouseY / static_cast<float>(height / 2) / zoom;
     }
 }
 
@@ -473,8 +467,6 @@ void GuiWindow::ZoomIn()
         logging::Log("Cannot zoom closer");
         zoom = maxZoom;
     }
-
-    Set(EFlag::Refresh);
 }
 
 void GuiWindow::ZoomOut()
@@ -487,8 +479,6 @@ void GuiWindow::ZoomOut()
         logging::Log("Cannot zoom further");
         zoom = minZoom;
     }
-
-    Set(EFlag::Refresh);
 }
 
 void GuiWindow::ResetView()
