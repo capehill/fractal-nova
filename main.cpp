@@ -132,7 +132,7 @@ int main(void)
         //const uint64 finish = timer.GetTicks();
         //duration = timer.TicksToSeconds(finish - start);
 
-    } catch (std::exception& e) {
+    } catch (const std::exception& e) {
         logging::Error("Exception %s", e.what());
     }
 
