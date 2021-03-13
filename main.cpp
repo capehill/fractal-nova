@@ -11,8 +11,10 @@
 namespace fractalnova {
 
 static constexpr double eventPeriod { 1.0 / 60.0 };
+static constexpr int minIter { 20 };
+static constexpr int maxIter { 1000 };
 
-static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 1.0 (1.7.2020)" };
+static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 1.0 (13.3.2021)" };
 
 struct Params {
     LONG vsync;
@@ -47,10 +49,10 @@ void ParseArgs()
 
         if (params.iter) {
             iterations = *params.iter;
-            if (iterations < 20) {
-                iterations = 20;
-            } else if (iterations > 1000) {
-                iterations = 1000;
+            if (iterations < minIter) {
+                iterations = minIter;
+            } else if (iterations > maxIter) {
+                iterations = maxIter;
             }
         }
         logging::Log("ITER [%ld]", iterations);
