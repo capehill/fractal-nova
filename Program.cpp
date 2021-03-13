@@ -9,7 +9,7 @@
 namespace fractalnova {
 
 namespace {
-    static constexpr float toRadians { M_PI/ 180.0f };
+    static constexpr float toRadians { M_PI / 180.0f };
 }
 
 Program::Program(W3DN_Context* context, const int iterations, const char* name):
@@ -72,12 +72,6 @@ void Program::UpdateVertexDBO() const
     data->zoom = zoom;
     data->point = { position.x + oldPosition.x, position.y + oldPosition.y };
 
-#if 0
-    if (oldPosition.x != data->point.x || oldPosition.y != data->point.y) {
-        logging::Log("%f, %f", oldPosition.x, oldPosition.y);
-    }
-#endif
-
     oldPosition = data->point;
 
     errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(VertexShaderData));
@@ -94,14 +88,6 @@ void Program::UpdateVertexDBO() const
 void Program::UpdateFragmentDBO() const
 {
     W3DN_ErrorCode errCode;
-
-#if 0
-    static int iter = 0;
-
-    if (++iter > iterations) {
-        iter = 20;
-    }
-#endif
 
     W3DN_BufferLock* lock = context->DBOLock(&errCode, fragmentShader->DboPtr()->Ptr(), 0 /* readOffset */, 0 /* readSize */);
 
