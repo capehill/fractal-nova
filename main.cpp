@@ -77,7 +77,7 @@ int main(void)
 
     try {
         GuiWindow window;
-        NovaContext context { window, params.vsync, iterations };
+        NovaContext context { window, static_cast<bool>(params.vsync), iterations };
         Timer timer;
 
         const uint64 start = timer.GetTicks();
