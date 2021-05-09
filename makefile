@@ -1,7 +1,7 @@
 NAME=fractal-nova
 
 CFLAGS=-Wall -Wextra -gstabs -O3
-LDFLAGS= -athread=native -lauto
+LDFLAGS= -athread=single -lauto
 
 SHADERS= \
 shaders/simple.vert.spv \
