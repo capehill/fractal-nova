@@ -222,13 +222,13 @@ bool GuiWindow::Run()
     position = { 0.0f, 0.0f };
     flags = 0;
 
-    while ((msg = (struct IntuiMessage *)IExec->GetMsg(window->UserPort))) {
+    while ((msg = reinterpret_cast<struct IntuiMessage *>(IExec->GetMsg(window->UserPort)))) {
         switch (msg->Class) {
             case IDCMP_CLOSEWINDOW:
                 running = false;
                 break;
             case IDCMP_EXTENDEDMOUSE:
-                HandleExtendedMouse((struct IntuiWheelData *)msg->IAddress);
+                HandleExtendedMouse(reinterpret_cast<struct IntuiWheelData *>(msg->IAddress));
                 break;
             case IDCMP_MENUPICK:
                 running = HandleMenuPick();
@@ -252,7 +252,7 @@ bool GuiWindow::Run()
                 break;
         }
 
-        IExec->ReplyMsg((struct Message *)msg);
+        IExec->ReplyMsg(reinterpret_cast<struct Message *>(msg));
     }
 
     return running;
@@ -460,7 +460,7 @@ float GuiWindow::GetZoomStep() const
 
 void GuiWindow::ZoomIn()
 {
-    constexpr float maxZoom { 20000.0f };
+    constexpr float maxZoom { 100000.0f };
 
     zoom *= GetZoomStep();
 

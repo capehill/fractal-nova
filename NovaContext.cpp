@@ -27,7 +27,7 @@ NovaContext::NovaContext(const GuiWindow& window, const bool vsync, const int it
     NovaBase = IExec->OpenLibrary("Warp3DNova.library", 1);
 
     if (NovaBase) {
-        IW3DNova = (struct Warp3DNovaIFace *)IExec->GetInterface(NovaBase, "main", 1, nullptr);
+        IW3DNova = reinterpret_cast<struct Warp3DNovaIFace *>(IExec->GetInterface(NovaBase, "main", 1, nullptr));
     }
 
     if (!IW3DNova) {
@@ -59,7 +59,7 @@ NovaContext::~NovaContext()
     }
 
     if (IW3DNova) {
-        IExec->DropInterface((struct Interface *)IW3DNova);
+        IExec->DropInterface(reinterpret_cast<struct Interface *>(IW3DNova));
         IW3DNova = nullptr;
     }
 

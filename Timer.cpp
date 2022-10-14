@@ -9,18 +9,18 @@ namespace fractalnova {
 
 Timer::Timer()
 {
-    port = (struct MsgPort *) IExec->AllocSysObjectTags(ASOT_PORT,
+    port = static_cast<struct MsgPort *>(IExec->AllocSysObjectTags(ASOT_PORT,
         ASOPORT_Name, "timer_port",
-        TAG_DONE);
+        TAG_DONE));
 
     if (!port) {
         throw std::runtime_error("Failed to create timer port");
     }
 
-    request = (struct TimeRequest *) IExec->AllocSysObjectTags(ASOT_IOREQUEST,
+    request = static_cast<struct TimeRequest *>(IExec->AllocSysObjectTags(ASOT_IOREQUEST,
         ASOIOR_Size, sizeof(struct TimeRequest),
         ASOIOR_ReplyPort, port,
-        TAG_DONE);
+        TAG_DONE));
 
     if (!request) {
         FreeMsgPort();
@@ -29,7 +29,7 @@ Timer::Timer()
     }
 
     device = IExec->OpenDevice(TIMERNAME, UNIT_WAITUNTIL,
-        (struct IORequest *) request, 0);
+        reinterpret_cast<struct IORequest *>(request), 0);
 
     if (device) {
         FreeMsgPort();
@@ -39,8 +39,8 @@ Timer::Timer()
     }
 
     if (!ITimer) {
-        ITimer = (struct TimerIFace *) IExec->GetInterface(
-            (struct Library *) request->Request.io_Device, "main", 1, nullptr);
+        ITimer = reinterpret_cast<struct TimerIFace *>(IExec->GetInterface(
+            reinterpret_cast<struct Library *>(request->Request.io_Device), "main", 1, nullptr));
 
         if (!ITimer) {
             FreeMsgPort();
@@ -51,14 +51,14 @@ Timer::Timer()
         }
     }
 
-    struct EClockVal clockVal;
+    EClockVal clockVal;
     frequency = ITimer->ReadEClock(&clockVal);
 }
 
 Timer::~Timer()
 {
     if (ITimer) {
-        IExec->DropInterface((struct Interface *)ITimer);
+        IExec->DropInterface(reinterpret_cast<struct Interface *>(ITimer));
         ITimer = nullptr;
     }
 
@@ -70,7 +70,7 @@ Timer::~Timer()
 void Timer::CloseDevice()
 {
     if (device == 0 && request) {
-        IExec->CloseDevice((struct IORequest *) request);
+        IExec->CloseDevice(reinterpret_cast<struct IORequest *>(request));
         device = -1;
     }
 }
@@ -94,7 +94,7 @@ void Timer::FreeIoRequest()
 struct MyClock {
     union {
         uint64 ticks;
-        struct EClockVal clockVal;
+        EClockVal clockVal;
     };
 };
 
