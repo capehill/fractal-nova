@@ -258,7 +258,7 @@ bool GuiWindow::Run()
     return running;
 }
 
-void GuiWindow::HandleExtendedMouse(struct IntuiWheelData * data)
+void GuiWindow::HandleExtendedMouse(const struct IntuiWheelData * data)
 {
     if (data->WheelY < 0) {
         ZoomIn();
@@ -528,7 +528,7 @@ Window* GuiWindow::WindowPtr() const
     return window;
 }
 
-void GuiWindow::Draw(BackBuffer* backBuffer) const
+void GuiWindow::Draw(const BackBuffer* backBuffer) const
 {
     const uint32 winw = window->Width - (window->BorderLeft + window->BorderRight);
     const uint32 winh = window->Height - (window->BorderTop + window->BorderBottom);

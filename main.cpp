@@ -36,7 +36,7 @@ void ParseArgs()
 {
     const char* const pattern = "VSYNC/S,ITER/N,LAZYCLEAR/S,VERBOSE/S";
 
-    struct RDArgs *result = IDOS->ReadArgs(pattern, (int32 *)&params, nullptr);
+    struct RDArgs *result = IDOS->ReadArgs(pattern, reinterpret_cast<int32 *>(&params), nullptr);
 
     if (result) {
         if (params.verbose) {
