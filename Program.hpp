@@ -35,6 +35,7 @@ private:
     W3DN_ShaderPipeline* shaderPipeline { nullptr };
 
     float zoom { 1.0f };
+    //double zoom64 { 1.0f };
     Vertex position { };
     Vertex complex { };
     mutable Vertex oldPosition { };

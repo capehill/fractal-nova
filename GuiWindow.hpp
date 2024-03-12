@@ -23,7 +23,7 @@ public:
     ~GuiWindow();
 
     bool Run();
-    void Draw(BackBuffer* backBuffer) const;
+    void Draw(const BackBuffer* backBuffer) const;
 
     void SetTitle(const char* title);
 
@@ -46,7 +46,7 @@ public:
 private:
     Object* CreateMenu();
 
-    void HandleExtendedMouse(struct IntuiWheelData* data);
+    void HandleExtendedMouse(const struct IntuiWheelData* data);
     bool HandleMenuPick();
     void HandleMouseButtons(UWORD code);
     void HandleMouseMove(int mouseX, int mouseY);

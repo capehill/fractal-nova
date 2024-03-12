@@ -9,7 +9,7 @@
 namespace fractalnova {
 
 namespace {
-    static constexpr float toRadians { M_PI / 180.0f };
+    static constexpr float toRadians { static_cast<float>(M_PI) / 180.0f };
 }
 
 Program::Program(W3DN_Context* context, const int iterations, const char* name):
@@ -70,6 +70,7 @@ void Program::UpdateVertexDBO() const
 
     data->angle = angle * toRadians;
     data->zoom = zoom;
+    //data->zoom64 = { std::floor(zoom), 1000000000.0f * (zoom - std::floor(zoom)) };
     data->point = { position.x + oldPosition.x, position.y + oldPosition.y };
 
     oldPosition = data->point;

@@ -13,6 +13,7 @@ class DataBuffer;
 struct VertexShaderData {
     float angle;
     float zoom;
+    //Vertex zoom64;
     Vertex point;
 };
 

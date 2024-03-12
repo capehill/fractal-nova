@@ -5,6 +5,7 @@ in layout(location = 1) vec2 textureCoord;
 
 uniform layout(location = 0) float angle;
 uniform layout(location = 1) float zoom;
+//uniform layout(location = 2) vec2 zoom64;
 uniform layout(location = 2) vec2 point;
 
 out vec2 texCoord;
