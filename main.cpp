@@ -124,7 +124,7 @@ int main(void)
 
             if (passed >= 1.0) {
                 static char buffer[64];
-                snprintf(buffer, sizeof(buffer), "FPS %.2f, zoom %.1f", (frames - lastFrames) / passed, window.GetZoom());
+                snprintf(buffer, sizeof(buffer), "FPS %.2f, zoom %.1f", static_cast<double>(frames - lastFrames) / passed, window.GetZoom());
                 window.SetTitle(buffer);
                 fpsTicks = now;
                 lastFrames = frames;

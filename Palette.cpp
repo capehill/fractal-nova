@@ -110,10 +110,10 @@ std::vector<Color> Palette::GetColorArray()
     // Make it cyclic
     weightedColors.emplace_back(weightedColors.front());
 
-    for (size_t i = 0; i < weightedColors.size() - 1; i++) {
+    for (std::size_t i = 0; i < weightedColors.size() - 1; i++) {
 
-        const int len = weightedColors[i].w / weight * size;
-        const float flen = len;
+        const float flen = weightedColors[i].w / weight * static_cast<float>(size);
+        const int len = static_cast<int>(flen);
 
         const Color& c1 = weightedColors[i].c;
         const Color& c2 = weightedColors[i + 1].c;
@@ -123,10 +123,11 @@ std::vector<Color> Palette::GetColorArray()
         const float b = (c2.b - c1.b) / flen;
 
         for (int j = 0; j < len; j++) {
+            const auto jf = static_cast<float>(j);
             colors.emplace_back(Color {
-                static_cast<uint8_t>(c1.r + j * r),
-                static_cast<uint8_t>(c1.g + j * g),
-                static_cast<uint8_t>(c1.b + j * b)
+                static_cast<uint8_t>(c1.r + jf * r),
+                static_cast<uint8_t>(c1.g + jf * g),
+                static_cast<uint8_t>(c1.b + jf * b)
                 });
         }
     }

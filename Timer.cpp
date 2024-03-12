@@ -28,8 +28,8 @@ Timer::Timer()
         throw std::runtime_error("Failed to create timer IO request");
     }
 
-    device = IExec->OpenDevice(TIMERNAME, UNIT_WAITUNTIL,
-        reinterpret_cast<struct IORequest *>(request), 0);
+    device = static_cast<BYTE>(IExec->OpenDevice(TIMERNAME, UNIT_WAITUNTIL,
+        reinterpret_cast<struct IORequest *>(request), 0));
 
     if (device) {
         FreeMsgPort();
@@ -107,7 +107,7 @@ uint64 Timer::GetTicks() const
 
 double Timer::TicksToSeconds(uint64 ticks) const
 {
-    return ticks / frequency;
+    return static_cast<double>(ticks) / frequency;
 }
 
 } // fractalnova

@@ -373,8 +373,8 @@ void GuiWindow::HandleMouseButtons(UWORD code)
 void GuiWindow::HandleMouseMove(int mouseX, int mouseY)
 {
     if (panning) {
-        position.x += mouseX / static_cast<float>(width / 2) / zoom;
-        position.y += mouseY / static_cast<float>(height / 2) / zoom;
+        position.x += static_cast<float>(mouseX) / static_cast<float>(width / 2) / zoom;
+        position.y += static_cast<float>(mouseY) / static_cast<float>(height / 2) / zoom;
     }
 }
 
@@ -536,8 +536,8 @@ void GuiWindow::Draw(const BackBuffer* backBuffer) const
     IGraphics->BltBitMapRastPort(backBuffer->Data(), 0, 0, window->RPort,
         window->BorderLeft,
         window->BorderTop,
-        std::min(winw, width),
-        std::min(winh, height),
+        static_cast<WORD>(std::min(winw, width)),
+        static_cast<WORD>(std::min(winh, height)),
         0xC0);
 
 }

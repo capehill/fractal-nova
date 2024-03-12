@@ -1,6 +1,6 @@
 NAME=fractal-nova
 
-CFLAGS=-Wall -Wextra -gstabs -O3
+CFLAGS=-Wall -Wextra -Wpedantic -Wconversion -gstabs -O3 #-Werror
 LDFLAGS= -athread=single -lauto
 
 SHADERS= \
