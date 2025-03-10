@@ -4,8 +4,6 @@ namespace fractalnova {
 
 static constexpr bool textureFiltering { false };
 
-extern struct Warp3DNovaIFace* IW3DNova;
-
 Texture::Texture(W3DN_Context* context, const std::vector<Color>& colors): NovaObject(context)
 {
     W3DN_ErrorCode errCode;
