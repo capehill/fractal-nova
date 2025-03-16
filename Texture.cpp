@@ -39,6 +39,11 @@ Texture::~Texture()
         context->DestroyTexture(texture);
         texture = nullptr;
     }
+
+    if (sampler) {
+        context->DestroyTexSampler(sampler);
+        sampler = nullptr;
+    }
 }
 
 } // fractalnova
