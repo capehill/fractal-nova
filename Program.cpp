@@ -33,7 +33,7 @@ Program::Program(W3DN_Context* context, const int iterations, const char* name):
         ThrowOnError(errCode, "Failed to create shader pipeline");
     }
 
-    errCode = context->SetShaderPipeline(nullptr, shaderPipeline);
+    errCode = context->SetShaderPipeline(defaultRSO, shaderPipeline);
 
     ThrowOnError(errCode, "Failed to set shader pipeline");
 
@@ -45,7 +45,7 @@ Program::~Program()
     vbo.reset();
 
     if (shaderPipeline) {
-        context->SetShaderPipeline(nullptr, nullptr);
+        context->SetShaderPipeline(defaultRSO, nullptr);
         context->DestroyShaderPipeline(shaderPipeline);
         shaderPipeline = nullptr;
     }

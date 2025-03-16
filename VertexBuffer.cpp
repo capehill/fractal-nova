@@ -9,8 +9,8 @@ static constexpr uint32 texCoordArrayIndex { 1 };
 VertexBuffer::~VertexBuffer()
 {
     if (vbo) {
-        context->BindVertexAttribArray(nullptr, 0 /* attribNum*/, nullptr, 0 /* arrayIdx */);
-        context->BindVertexAttribArray(nullptr, 1 /* attribNum*/, nullptr, 0 /* arrayIdx */);
+        context->BindVertexAttribArray(defaultRSO, 0 /* attribNum*/, nullptr, 0 /* arrayIdx */);
+        context->BindVertexAttribArray(defaultRSO, 1 /* attribNum*/, nullptr, 0 /* arrayIdx */);
         context->DestroyVertexBufferObject(vbo);
         vbo = nullptr;
     }
@@ -35,7 +35,7 @@ VertexBuffer::VertexBuffer(W3DN_Context* context): NovaObject(context)
 
     ThrowOnError(errCode, "Failed to set VBO array");
 
-    errCode = context->VBOSetArray(vbo, texCoordArrayIndex, W3DNEF_FLOAT, FALSE, texCoordElementCount, stride, 0, vertexCount);
+    errCode = context->VBOSetArray(vbo, texCoordArrayIndex, W3DNEF_FLOAT, FALSE, texCoordElementCount, stride, 0 /* FIXME */, vertexCount);
 
     ThrowOnError(errCode, "Failed to set VBO array (texCoord)");
 
@@ -73,11 +73,11 @@ VertexBuffer::VertexBuffer(W3DN_Context* context): NovaObject(context)
     constexpr uint32 posAttributeIndex { 0 };
     constexpr uint32 texCoordAttributeIndex { 0 };
 
-    errCode = context->BindVertexAttribArray(nullptr, posArrayIndex, vbo, posAttributeIndex);
+    errCode = context->BindVertexAttribArray(defaultRSO, posArrayIndex, vbo, posAttributeIndex);
 
     ThrowOnError(errCode, "Failed to bind vertex attribute array (pos)");
 
-    errCode = context->BindVertexAttribArray(nullptr, texCoordArrayIndex, vbo, texCoordAttributeIndex);
+    errCode = context->BindVertexAttribArray(defaultRSO, texCoordArrayIndex, vbo, texCoordAttributeIndex);
 
     ThrowOnError(errCode, "Failed to bind vertex attribute array (texCoord)");
 }

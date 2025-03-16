@@ -16,7 +16,7 @@ DataBuffer::DataBuffer(W3DN_Context* context, const W3DN_ShaderType shaderType, 
 
     ThrowOnError(errCode, "Failed to set data buffer object");
 
-    context->BindShaderDataBuffer(nullptr, shaderType, dbo, 0 /* bufferIdx */);
+    context->BindShaderDataBuffer(defaultRSO, shaderType, dbo, 0 /* bufferIdx */);
 
     ThrowOnError(errCode, "Failed to bind data buffer object");
 }
@@ -24,7 +24,7 @@ DataBuffer::DataBuffer(W3DN_Context* context, const W3DN_ShaderType shaderType, 
 DataBuffer::~DataBuffer()
 {
     if (dbo) {
-        context->BindShaderDataBuffer(nullptr, shaderType, nullptr, 0);
+        context->BindShaderDataBuffer(defaultRSO, shaderType, nullptr, 0);
         context->DestroyDataBufferObject(dbo);
         dbo = nullptr;
     }

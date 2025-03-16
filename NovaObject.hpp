@@ -16,6 +16,7 @@ protected:
     void ThrowOnError(W3DN_ErrorCode errCode, const std::string& message) const;
 
     W3DN_Context* context { nullptr };
+    W3DN_RenderState* const defaultRSO { nullptr };
 };
 
 } // fractalnova

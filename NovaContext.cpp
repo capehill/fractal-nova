@@ -96,14 +96,15 @@ void NovaContext::Resize()
         backBuffer = std::make_unique<BackBuffer>(width, height, window.WindowPtr()->RPort->BitMap);
     }
 
-    W3DN_ErrorCode errCode = context->FBBindBufferTags(nullptr, W3DN_FB_COLOUR_BUFFER_0,
+    W3DN_FrameBuffer* defaultFBO = nullptr;
+    W3DN_ErrorCode errCode = context->FBBindBufferTags(defaultFBO, W3DN_FB_COLOUR_BUFFER_0,
         W3DNTag_BitMap, backBuffer->Data(),
         TAG_DONE);
 
     ThrowOnError(errCode, "Failed to bind buffer to frame buffer object");
 
     //errCode = context->SetViewport(nullptr, 0.0, height, width, -height, 0.0, 1.0);
-    errCode = context->SetViewport(nullptr, 0.0, 0.0, width, height, 0.0, 1.0);
+    errCode = context->SetViewport(defaultRSO, 0.0, 0.0, width, height, 0.0, 1.0);
 
     ThrowOnError(errCode, "Failed to set viewport");
 
@@ -114,7 +115,7 @@ void NovaContext::Clear() const
 {
     constexpr float opaqueBlack[4] { 0.0f, 0.0f, 0.0f, 1.0f };
 
-    const W3DN_ErrorCode errCode = context->Clear(nullptr /* renderState */, opaqueBlack, nullptr /* depth */, nullptr /* stencil*/);
+    const W3DN_ErrorCode errCode = context->Clear(defaultRSO, opaqueBlack, nullptr /* depth */, nullptr /* stencil*/);
 
     ThrowOnError(errCode, "Failed to clear");
 }
@@ -124,7 +125,7 @@ void NovaContext::Draw() const
     program->UpdateVertexDBO();
     program->UpdateFragmentDBO();
 
-    const W3DN_ErrorCode errCode = context->DrawArrays(nullptr, W3DN_PRIM_TRISTRIP, 0 /* base */, program->VboPtr()->vertexCount);
+    const W3DN_ErrorCode errCode = context->DrawArrays(defaultRSO, W3DN_PRIM_TRISTRIP, 0 /* base */, program->VboPtr()->vertexCount);
 
     ThrowOnError(errCode, "Failed to draw arrays");
 }

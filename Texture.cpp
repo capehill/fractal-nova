@@ -2,7 +2,7 @@
 
 namespace fractalnova {
 
-static constexpr bool textureFiltering { false };
+static constexpr bool textureFiltering { true };
 
 Texture::Texture(W3DN_Context* context, const std::vector<Color>& colors): NovaObject(context)
 {
@@ -27,7 +27,7 @@ Texture::Texture(W3DN_Context* context, const std::vector<Color>& colors): NovaO
 
     ThrowOnError(errCode, "Failed to set texture sampler parameters");
 
-    context->BindTexture(nullptr, 0 /* texture unit */, texture, sampler);
+    context->BindTexture(defaultRSO, 0 /* texture unit */, texture, sampler);
 
     ThrowOnError(errCode, "Failed to bind texture");
 }
@@ -35,7 +35,7 @@ Texture::Texture(W3DN_Context* context, const std::vector<Color>& colors): NovaO
 Texture::~Texture()
 {
     if (texture) {
-        context->BindTexture(nullptr, 0, nullptr, nullptr);
+        context->BindTexture(defaultRSO, 0, nullptr, nullptr);
         context->DestroyTexture(texture);
         texture = nullptr;
     }
