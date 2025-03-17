@@ -2,6 +2,8 @@
 
 namespace fractalnova {
 
+static constexpr uint32 bufferIdx = 0;
+
 DataBuffer::DataBuffer(W3DN_Context* context, const W3DN_ShaderType shaderType, const std::size_t size, W3DN_Shader* shader): NovaObject(context), shaderType(shaderType)
 {
     W3DN_ErrorCode errCode;
@@ -11,12 +13,14 @@ DataBuffer::DataBuffer(W3DN_Context* context, const W3DN_ShaderType shaderType, 
 
     ThrowOnError(errCode, "Failed to create data buffer object");
 
-    context->DBOSetBufferTags(dbo, 0 /* bufferIdx */, 0 /* offset */, size, shader,
+    constexpr uint64 offset = 0;
+
+    context->DBOSetBufferTags(dbo, bufferIdx, offset, size, shader,
         TAG_DONE);
 
     ThrowOnError(errCode, "Failed to set data buffer object");
 
-    context->BindShaderDataBuffer(defaultRSO, shaderType, dbo, 0 /* bufferIdx */);
+    context->BindShaderDataBuffer(defaultRSO, shaderType, dbo, bufferIdx);
 
     ThrowOnError(errCode, "Failed to bind data buffer object");
 }
@@ -24,7 +28,7 @@ DataBuffer::DataBuffer(W3DN_Context* context, const W3DN_ShaderType shaderType, 
 DataBuffer::~DataBuffer()
 {
     if (dbo) {
-        context->BindShaderDataBuffer(defaultRSO, shaderType, nullptr, 0);
+        context->BindShaderDataBuffer(defaultRSO, shaderType, nullptr, bufferIdx);
         context->DestroyDataBufferObject(dbo);
         dbo = nullptr;
     }

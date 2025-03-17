@@ -103,7 +103,7 @@ void NovaContext::Resize()
 
     ThrowOnError(errCode, "Failed to bind buffer to frame buffer object");
 
-    //errCode = context->SetViewport(nullptr, 0.0, height, width, -height, 0.0, 1.0);
+    //errCode = context->SetViewport(defaultRSO, 0.0, height, width, -height, 0.0, 1.0);
     errCode = context->SetViewport(defaultRSO, 0.0, 0.0, width, height, 0.0, 1.0);
 
     ThrowOnError(errCode, "Failed to set viewport");
@@ -114,8 +114,10 @@ void NovaContext::Resize()
 void NovaContext::Clear() const
 {
     constexpr float opaqueBlack[4] { 0.0f, 0.0f, 0.0f, 1.0f };
+    constexpr double* depth = nullptr;
+    constexpr uint32* stencil = nullptr;
 
-    const W3DN_ErrorCode errCode = context->Clear(defaultRSO, opaqueBlack, nullptr /* depth */, nullptr /* stencil*/);
+    const W3DN_ErrorCode errCode = context->Clear(defaultRSO, opaqueBlack, depth, stencil);
 
     ThrowOnError(errCode, "Failed to clear");
 }
@@ -125,7 +127,8 @@ void NovaContext::Draw() const
     program->UpdateVertexDBO();
     program->UpdateFragmentDBO();
 
-    const W3DN_ErrorCode errCode = context->DrawArrays(defaultRSO, W3DN_PRIM_TRISTRIP, 0 /* base */, program->VboPtr()->vertexCount);
+    constexpr uint32 base = 0;
+    const W3DN_ErrorCode errCode = context->DrawArrays(defaultRSO, W3DN_PRIM_TRISTRIP, base, program->VboPtr()->vertexCount);
 
     ThrowOnError(errCode, "Failed to draw arrays");
 }
@@ -140,7 +143,9 @@ void NovaContext::SwapBuffers()
         ThrowOnError(errCode, "Submit failed");
     }
 
-    errCode = context->WaitDone(submitID, 0);
+    constexpr uint32 noTimeout = 0;
+
+    errCode = context->WaitDone(submitID, noTimeout);
 
     ThrowOnError(errCode, "WaitDone failed");
 

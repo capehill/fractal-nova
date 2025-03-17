@@ -2,18 +2,27 @@
 
 namespace fractalnova {
 
-static constexpr bool textureFiltering { true };
+static constexpr bool textureFiltering { false };
+static constexpr uint32 textureUnit { 0 };
 
 Texture::Texture(W3DN_Context* context, const std::vector<Color>& colors): NovaObject(context)
 {
     W3DN_ErrorCode errCode;
 
+    constexpr uint32 height = 1;
+    constexpr uint32 depth = 1;
+    constexpr BOOL mipmapped = FALSE;
+
     texture = context->CreateTexture(&errCode, W3DN_TEXTURE_2D, W3DNPF_RGBA, W3DNEF_UINT8,
-        colors.size(), 1, 1 /* depth */, FALSE /* mipmapped*/, W3DN_STATIC_DRAW);
+        colors.size(), height, depth, mipmapped, W3DN_STATIC_DRAW);
 
     ThrowOnError(errCode, "Failed to create texture");
 
-    errCode = context->TexUpdateImage(texture, const_cast<Color*>(colors.data()), 0 /* level */, 0 /* arrayIdx */, sizeof(Color) * colors.size(), 0 /* srcRowsPerLayer */);
+    constexpr uint32 level = 0;
+    constexpr uint32 arrayIdx = 0;
+    constexpr uint32 srcRowsPerLayer = 0;
+
+    errCode = context->TexUpdateImage(texture, const_cast<Color*>(colors.data()), level, arrayIdx, sizeof(Color) * colors.size(), srcRowsPerLayer);
 
     ThrowOnError(errCode, "Failed to update texture");
 
@@ -27,7 +36,7 @@ Texture::Texture(W3DN_Context* context, const std::vector<Color>& colors): NovaO
 
     ThrowOnError(errCode, "Failed to set texture sampler parameters");
 
-    context->BindTexture(defaultRSO, 0 /* texture unit */, texture, sampler);
+    context->BindTexture(defaultRSO, textureUnit, texture, sampler);
 
     ThrowOnError(errCode, "Failed to bind texture");
 }
@@ -35,7 +44,10 @@ Texture::Texture(W3DN_Context* context, const std::vector<Color>& colors): NovaO
 Texture::~Texture()
 {
     if (texture) {
-        context->BindTexture(defaultRSO, 0, nullptr, nullptr);
+        constexpr W3DN_Texture* defaultTexture = nullptr;
+        constexpr W3DN_TextureSampler* defaultSampler = nullptr;
+
+        context->BindTexture(defaultRSO, textureUnit, defaultTexture, defaultSampler);
         context->DestroyTexture(texture);
         texture = nullptr;
     }

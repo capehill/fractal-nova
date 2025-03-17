@@ -60,7 +60,10 @@ void Program::UpdateVertexDBO() const
 
     static float angle = 0.0f;
 
-    W3DN_BufferLock* lock = context->DBOLock(&errCode, vertexShader->DboPtr()->Ptr(), 0 /* readOffset */, 0 /* readSize */);
+    constexpr uint64 readOffset = 0;
+    constexpr uint64 readSize = 0;
+
+    W3DN_BufferLock* lock = context->DBOLock(&errCode, vertexShader->DboPtr()->Ptr(), readOffset, readSize);
 
     if (!lock) {
         ThrowOnError(errCode, "Failed to lock data buffer object (vertex)");
@@ -75,7 +78,9 @@ void Program::UpdateVertexDBO() const
 
     oldPosition = data->point;
 
-    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(VertexShaderData));
+    constexpr uint64 writeOffset = 0;
+
+    errCode = context->BufferUnlock(lock, writeOffset, sizeof(VertexShaderData));
 
     ThrowOnError(errCode, "Failed to unlock data buffer object (vertex)");
 
@@ -90,7 +95,10 @@ void Program::UpdateFragmentDBO() const
 {
     W3DN_ErrorCode errCode;
 
-    W3DN_BufferLock* lock = context->DBOLock(&errCode, fragmentShader->DboPtr()->Ptr(), 0 /* readOffset */, 0 /* readSize */);
+    constexpr uint64 readOffset = 0;
+    constexpr uint64 readSize = 0;
+
+    W3DN_BufferLock* lock = context->DBOLock(&errCode, fragmentShader->DboPtr()->Ptr(), readOffset, readSize);
 
     if (!lock) {
         ThrowOnError(errCode, "Failed to lock data buffer object (fragment)");
@@ -101,7 +109,9 @@ void Program::UpdateFragmentDBO() const
     data->iterations = iterations;
     data->complex = complex; // TODO: only Julia uses this
 
-    errCode = context->BufferUnlock(lock, 0 /* writeOffset */, sizeof(FragmentShaderData));
+    constexpr uint64 writeOffset = 0;
+
+    errCode = context->BufferUnlock(lock, writeOffset, sizeof(FragmentShaderData));
 
     ThrowOnError(errCode, "Failed to unlock data buffer object (fragment)");
 }
