@@ -1,0 +1,69 @@
+#include "VertexShader.hpp"
+#include "DataBuffer.hpp"
+#include "Logger.hpp"
+#include "Vertex.hpp"
+
+#include <cmath> // M_PI
+#include <stdexcept>
+
+namespace {
+    static constexpr float toRadians { static_cast<float>(M_PI) / 180.0f };
+}
+
+namespace fractalnova {
+
+struct VertexShaderData {
+    float angle;
+    float zoom;
+    //Vertex zoom64;
+    Vertex point;
+};
+
+VertexShader::VertexShader(W3DN_Context* context, const std::string& fileName): Shader(context, fileName + ".vert.spv")
+{
+    dbo = std::make_unique<DataBuffer>(context, W3DNST_VERTEX, sizeof(VertexShaderData), shader);
+}
+
+VertexShader::~VertexShader()
+{
+}
+
+void VertexShader::UpdateDBO(const float zoom, Vertex& oldPosition, const Vertex& position) const
+{
+    W3DN_ErrorCode errCode;
+
+    static float angle = 0.0f;
+
+    constexpr uint64 readOffset = 0;
+    constexpr uint64 readSize = 0;
+
+    W3DN_BufferLock* lock = context->DBOLock(&errCode, dbo->Ptr(), readOffset, readSize);
+
+    if (!lock) {
+        ThrowOnError(errCode, "Failed to lock data buffer object (vertex)");
+    }
+
+    auto data = reinterpret_cast<VertexShaderData *>(lock->buffer);
+
+    data->angle = angle * toRadians;
+    data->zoom = zoom;
+    //data->zoom64 = { std::floor(zoom), 1000000000.0f * (zoom - std::floor(zoom)) };
+    data->point = { position.x + oldPosition.x, position.y + oldPosition.y };
+
+    oldPosition = data->point;
+
+    constexpr uint64 writeOffset = 0;
+
+    errCode = context->BufferUnlock(lock, writeOffset, sizeof(VertexShaderData));
+
+    ThrowOnError(errCode, "Failed to unlock data buffer object (vertex)");
+
+    //angle += 1.0f;
+
+    if (angle >= 360.0f) {
+        angle = 0.0f;
+    }
+}
+
+} // fractalnova
+

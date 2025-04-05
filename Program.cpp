@@ -1,27 +1,18 @@
 #include "Program.hpp"
-#include "Shader.hpp"
+#include "VertexShader.hpp"
+#include "FragmentShader.hpp"
 #include "VertexBuffer.hpp"
-#include "DataBuffer.hpp"
 #include "Logger.hpp"
-
-#include <cmath> // M_PI
 
 namespace fractalnova {
 
-namespace {
-    static constexpr float toRadians { static_cast<float>(M_PI) / 180.0f };
-}
-
 Program::Program(W3DN_Context* context, const int iterations, const char* name):
     NovaObject(context),
-    vertexShader(std::make_unique<Shader>(context, W3DNST_VERTEX)),
-    fragmentShader(std::make_unique<Shader>(context, W3DNST_FRAGMENT)),
+    vertexShader(std::make_unique<VertexShader>(context, name)),
+    fragmentShader(std::make_unique<FragmentShader>(context, name)),
     iterations(iterations)
 {
     logging::Log("Creating shader program '%s'", name);
-
-    vertexShader->Compile(std::string(name) + ".vert.spv");
-    fragmentShader->Compile(std::string(name) + ".frag.spv");
 
     W3DN_ErrorCode errCode;
     shaderPipeline = context->CreateShaderPipelineTags(&errCode,
@@ -56,66 +47,13 @@ Program::~Program()
 
 void Program::UpdateVertexDBO() const
 {
-    W3DN_ErrorCode errCode;
-
-    static float angle = 0.0f;
-
-    constexpr uint64 readOffset = 0;
-    constexpr uint64 readSize = 0;
-
-    W3DN_BufferLock* lock = context->DBOLock(&errCode, vertexShader->DboPtr()->Ptr(), readOffset, readSize);
-
-    if (!lock) {
-        ThrowOnError(errCode, "Failed to lock data buffer object (vertex)");
-    }
-
-    VertexShaderData* data = reinterpret_cast<VertexShaderData *>(lock->buffer);
-
-    data->angle = angle * toRadians;
-    data->zoom = zoom;
-    //data->zoom64 = { std::floor(zoom), 1000000000.0f * (zoom - std::floor(zoom)) };
-    data->point = { position.x + oldPosition.x, position.y + oldPosition.y };
-
-    oldPosition = data->point;
-
-    constexpr uint64 writeOffset = 0;
-
-    errCode = context->BufferUnlock(lock, writeOffset, sizeof(VertexShaderData));
-
-    ThrowOnError(errCode, "Failed to unlock data buffer object (vertex)");
-
-    //angle += 1.0f;
-
-    if (angle >= 360.0f) {
-        angle = 0.0f;
-    }
+    vertexShader->UpdateDBO(zoom, oldPosition, position);
 }
 
 void Program::UpdateFragmentDBO() const
 {
-    W3DN_ErrorCode errCode;
-
-    constexpr uint64 readOffset = 0;
-    constexpr uint64 readSize = 0;
-
-    W3DN_BufferLock* lock = context->DBOLock(&errCode, fragmentShader->DboPtr()->Ptr(), readOffset, readSize);
-
-    if (!lock) {
-        ThrowOnError(errCode, "Failed to lock data buffer object (fragment)");
-    }
-
-    FragmentShaderData* data = reinterpret_cast<FragmentShaderData *>(lock->buffer);
-
-    data->iterations = iterations;
-    data->complex = complex; // TODO: only Julia uses this
-
-    constexpr uint64 writeOffset = 0;
-
-    errCode = context->BufferUnlock(lock, writeOffset, sizeof(FragmentShaderData));
-
-    ThrowOnError(errCode, "Failed to unlock data buffer object (fragment)");
+    fragmentShader->UpdateDBO(iterations, complex);
 }
-
 
 void Program::SetPosition(const Vertex& pos)
 {

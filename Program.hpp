@@ -8,7 +8,8 @@
 namespace fractalnova {
 
 class VertexBuffer;
-class Shader;
+class VertexShader;
+class FragmentShader;
 
 class Program: public NovaObject
 {
@@ -27,10 +28,10 @@ public:
     VertexBuffer* VboPtr() const;
 
 private:
-    std::unique_ptr<VertexBuffer> vbo;
+    std::unique_ptr<VertexBuffer> vbo; // TODO: move out?
 
-    std::unique_ptr<Shader> vertexShader;
-    std::unique_ptr<Shader> fragmentShader;
+    std::unique_ptr<VertexShader> vertexShader;
+    std::unique_ptr<FragmentShader> fragmentShader;
 
     W3DN_ShaderPipeline* shaderPipeline { nullptr };
 

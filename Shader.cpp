@@ -10,15 +10,9 @@ namespace {
 static constexpr bool verbose { false };
 }
 
-Shader::Shader(W3DN_Context* context, W3DN_ShaderType shaderType): NovaObject(context)
+Shader::Shader(W3DN_Context* context, const std::string& fileName): NovaObject(context)
 {
-    if (shaderType == W3DNST_VERTEX) {
-        dbo = std::make_unique<DataBuffer>(context, W3DNST_VERTEX, sizeof(VertexShaderData), shader);
-    } else if (shaderType == W3DNST_FRAGMENT) {
-        dbo = std::make_unique<DataBuffer>(context, W3DNST_FRAGMENT, sizeof(FragmentShaderData), shader);
-    } else {
-        throw std::runtime_error("Unknown shader type");
-    }
+    Compile(fileName);
 }
 
 Shader::~Shader()
