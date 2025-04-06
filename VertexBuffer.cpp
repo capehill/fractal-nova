@@ -32,16 +32,17 @@ VertexBuffer::VertexBuffer(W3DN_Context* context): NovaObject(context)
     constexpr uint32 posArrayIndex { 0 };
     constexpr uint32 texCoordArrayIndex { 1 };
 
-    constexpr uint32 base { 0 };
     constexpr uint32 stride { sizeof(Vertex4) };
     constexpr uint32 posElementCount { 2 };
     constexpr uint32 texCoordElementCount { 2 };
+    constexpr uint32 posBase { 0 };
+    constexpr uint32 texCoordBase { posElementCount * sizeof(float) };
 
-    errCode = context->VBOSetArray(vbo, posArrayIndex, W3DNEF_FLOAT, FALSE, posElementCount, stride, base, vertexCount);
+    errCode = context->VBOSetArray(vbo, posArrayIndex, W3DNEF_FLOAT, FALSE, posElementCount, stride, posBase, vertexCount);
 
     ThrowOnError(errCode, "Failed to set VBO array (pos)");
 
-    errCode = context->VBOSetArray(vbo, texCoordArrayIndex, W3DNEF_FLOAT, FALSE, texCoordElementCount, stride, 0 /* TODO FIXME posElementCount * sizeof(float)*/, vertexCount);
+    errCode = context->VBOSetArray(vbo, texCoordArrayIndex, W3DNEF_FLOAT, FALSE, texCoordElementCount, stride, texCoordBase, vertexCount);
 
     ThrowOnError(errCode, "Failed to set VBO array (texCoord)");
 
@@ -62,17 +63,17 @@ VertexBuffer::VertexBuffer(W3DN_Context* context): NovaObject(context)
 
     vertices[0].x = -1.0f;
     vertices[0].y = -1.0f;
-    vertices[0].s = 0.0f;
-    vertices[0].t = 0.0f;
+    vertices[0].s = -1.0f;
+    vertices[0].t = -1.0f;
 
     vertices[1].x =  1.0f;
     vertices[1].y = -1.0f;
     vertices[1].s =  1.0f;
-    vertices[1].t =  0.0f;
+    vertices[1].t = -1.0f;
 
     vertices[2].x = -1.0f;
     vertices[2].y =  1.0f;
-    vertices[2].s =  0.0f;
+    vertices[2].s = -1.0f;
     vertices[2].t =  1.0f;
 
     vertices[3].x = 1.0f;
