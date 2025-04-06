@@ -1,7 +1,6 @@
 #include "Program.hpp"
 #include "VertexShader.hpp"
 #include "FragmentShader.hpp"
-#include "VertexBuffer.hpp"
 #include "Logger.hpp"
 
 namespace fractalnova {
@@ -27,14 +26,10 @@ Program::Program(W3DN_Context* context, const int iterations, const char* name):
     errCode = context->SetShaderPipeline(defaultRSO, shaderPipeline);
 
     ThrowOnError(errCode, "Failed to set shader pipeline");
-
-    vbo = std::make_unique<VertexBuffer>(context);
 }
 
 Program::~Program()
 {
-    vbo.reset();
-
     if (shaderPipeline) {
         context->SetShaderPipeline(defaultRSO, nullptr);
         context->DestroyShaderPipeline(shaderPipeline);
@@ -73,11 +68,6 @@ void Program::SetZoom(const float z)
 void Program::Reset()
 {
     oldPosition = { 0.0f, 0.0f };
-}
-
-VertexBuffer* Program::VboPtr() const
-{
-    return vbo.get();
 }
 
 } // fractalnova

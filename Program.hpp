@@ -7,7 +7,6 @@
 
 namespace fractalnova {
 
-class VertexBuffer;
 class VertexShader;
 class FragmentShader;
 
@@ -25,11 +24,7 @@ public:
     void UpdateVertexDBO() const;
     void UpdateFragmentDBO() const;
 
-    VertexBuffer* VboPtr() const;
-
 private:
-    std::unique_ptr<VertexBuffer> vbo; // TODO: move out?
-
     std::unique_ptr<VertexShader> vertexShader;
     std::unique_ptr<FragmentShader> fragmentShader;
 

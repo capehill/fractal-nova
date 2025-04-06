@@ -7,6 +7,7 @@
 #include "Program.hpp"
 #include "BackBuffer.hpp"
 #include "Logger.hpp"
+#include "VertexBuffer.hpp"
 
 #include <proto/exec.h>
 #include <proto/graphics.h>
@@ -46,14 +47,17 @@ NovaContext::NovaContext(const GuiWindow& window, const bool vsync, const int it
 
     UseProgram(EFractal::Mandelbrot);
     UsePalette(EPalette::Rainbow);
+
+    vbo = std::make_unique<VertexBuffer>(context);
 }
 
 NovaContext::~NovaContext()
 {
-    texture.reset();
-    program.reset();
-
     if (context) {
+        texture.reset();
+        program.reset();
+        vbo.reset();
+
         context->Destroy();
         context = nullptr;
     }
@@ -128,7 +132,7 @@ void NovaContext::Draw() const
     program->UpdateFragmentDBO();
 
     constexpr uint32 base = 0;
-    const W3DN_ErrorCode errCode = context->DrawArrays(defaultRSO, W3DN_PRIM_TRISTRIP, base, program->VboPtr()->vertexCount);
+    const W3DN_ErrorCode errCode = context->DrawArrays(defaultRSO, W3DN_PRIM_TRISTRIP, base, vbo->vertexCount);
 
     ThrowOnError(errCode, "Failed to draw arrays");
 }

@@ -17,6 +17,7 @@ class Program;
 class BackBuffer;
 class Vertex;
 class Palette;
+class VertexBuffer;
 
 class NovaContext: public NovaObject
 {
@@ -47,6 +48,7 @@ private:
     std::unique_ptr<BackBuffer> backBuffer;
     std::unique_ptr<Program> program;
     std::unique_ptr<Texture> texture;
+    std::unique_ptr<VertexBuffer> vbo;
 
     const GuiWindow& window;
     uint32 width { 0 };
