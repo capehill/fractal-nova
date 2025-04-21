@@ -51,7 +51,9 @@ private:
     void HandleMouseButtons(UWORD code);
     void HandleMouseMove(int mouseX, int mouseY);
     void HandleNewSize();
-    bool HandleRawKey(UWORD code);
+    bool HandleRawKey();
+    void HandleIconify();
+    void HandleUniconify();
 
     void ResetView();
 
@@ -59,7 +61,11 @@ private:
     void ZoomIn();
     void ZoomOut();
 
+    static uint32 IdcmpHook(Hook* hook, APTR window, IntuiMessage* msg);
+
+    Object* windowObject { nullptr };
     Window* window { nullptr };
+    MsgPort* appPort { nullptr };
 
     bool panning { false };
     bool fastZoom { false };

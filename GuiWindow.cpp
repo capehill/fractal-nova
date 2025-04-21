@@ -6,10 +6,12 @@
 #include <proto/intuition.h>
 #include <proto/graphics.h>
 
+#include <libraries/dos.h>
 #include <libraries/keymap.h>
 #include <libraries/gadtools.h>
 
 #include <intuition/menuclass.h>
+#include <classes/window.h>
 
 #include <cstdio>
 #include <stdexcept>
@@ -196,29 +198,80 @@ Object* GuiWindow::CreateMenu()
     return menu;
 }
 
+uint32 GuiWindow::IdcmpHook(Hook* hook, APTR window __attribute__((unused)), IntuiMessage* msg)
+{
+    auto thisPtr = reinterpret_cast<GuiWindow*>(hook->h_Data);
+
+    switch (msg->Class) {
+        case IDCMP_MOUSEBUTTONS:
+            thisPtr->HandleMouseButtons(msg->Code);
+            break;
+        case IDCMP_MOUSEMOVE:
+            thisPtr->HandleMouseMove(msg->MouseX, msg->MouseY);
+            break;
+        case IDCMP_EXTENDEDMOUSE:
+            thisPtr->HandleExtendedMouse(reinterpret_cast<struct IntuiWheelData *>(msg->IAddress));
+            break;
+        default:
+            logging::Error("Unknown message %lu", msg->Class);
+            break;
+    }
+
+    return 0;
+}
+
 GuiWindow::GuiWindow()
 {
-    window = IIntuition->OpenWindowTags(nullptr,
-        WA_Title, name,
-        WA_ScreenTitle, name,
+    static Hook idcmpHook {
+        { 0, 0 },
+        reinterpret_cast<HOOKFUNC>(reinterpret_cast<void *>(IdcmpHook)),
+        nullptr,
+        this
+    };
+
+    appPort = static_cast<MsgPort *>(IExec->AllocSysObjectTags(ASOT_PORT, TAG_DONE));
+
+    if (!appPort) {
+        throw std::runtime_error("Failed to create app port");
+    }
+
+    constexpr bool fullscreen = false;
+
+    windowObject = IIntuition->NewObject(nullptr, "window.class",
         WA_Activate, TRUE,
+        WA_Title, !fullscreen ? name : nullptr,
+        WA_ScreenTitle, name,
+        // WA_Pubscreen, pubScreen ? pubScreen : screen, TODO:
         WA_BackFill, LAYERS_NOBACKFILL,
-        WA_CloseGadget, TRUE,
-        WA_DragBar, TRUE,
-        WA_DepthGadget, TRUE,
+        WA_InnerWidth, width,
+        WA_InnerHeight, height,
+        WA_MinHeight, 200,
+        WA_MinWidth, 200,
+        WA_MaxHeight, 2048,
+        WA_MaxWidth, 2048,
         WA_Flags, WFLG_REPORTMOUSE | WFLG_NEWLOOKMENUS,
         WA_IDCMP, IDCMP_REFRESHWINDOW | IDCMP_NEWSIZE | IDCMP_CLOSEWINDOW | IDCMP_MOUSEBUTTONS | IDCMP_MOUSEMOVE |
                   IDCMP_DELTAMOVE | IDCMP_EXTENDEDMOUSE | IDCMP_RAWKEY | IDCMP_MENUPICK,
-        WA_InnerWidth, width,
-        WA_InnerHeight, height,
-        WA_MaxHeight, 2048,
-        WA_MaxWidth, 2048,
+        WA_CloseGadget, !fullscreen,
+        WA_DragBar, !fullscreen,
+        WA_DepthGadget, !fullscreen,
+        WA_SizeGadget, !fullscreen,
         WA_MenuStrip, CreateMenu(),
-        WA_MinHeight, 200,
-        WA_MinWidth, 200,
         WA_SimpleRefresh, TRUE,
-        WA_SizeGadget, TRUE,
+        WA_Borderless, fullscreen,
+        WINDOW_IconifyGadget, !fullscreen,
+        //WINDOW_Icon, MyGetDiskObject(), TODO:
+        WINDOW_AppPort, appPort, // For Iconification
+        WINDOW_IDCMPHook, &idcmpHook,
+        WINDOW_IDCMPHookBits, IDCMP_MOUSEBUTTONS | IDCMP_MOUSEMOVE | IDCMP_EXTENDEDMOUSE,
+        WINDOW_Position, WPOS_CENTERSCREEN,
         TAG_DONE);
+
+    if (!windowObject) {
+        throw std::runtime_error("Failed to create window");
+    }
+
+    window = reinterpret_cast<Window *>(IIntuition->IDoMethod(windowObject, WM_OPEN));
 
     if (!window) {
         throw std::runtime_error("Failed to open window");
@@ -227,52 +280,76 @@ GuiWindow::GuiWindow()
 
 GuiWindow::~GuiWindow()
 {
-    if (window) {
-        IIntuition->CloseWindow(window);
+    if (windowObject) {
+        //IIntuition->CloseWindow(window);
+        IIntuition->DisposeObject(windowObject);
+        windowObject = nullptr;
         window = nullptr;
+    }
+
+    if (appPort) {
+        IExec->FreeSysObject(ASOT_PORT, appPort);
+        appPort = nullptr;
     }
 }
 
 bool GuiWindow::Run()
 {
-    IntuiMessage* msg;
-
     bool running { true };
 
     position = { 0.0f, 0.0f };
     flags = 0;
 
-    while ((msg = reinterpret_cast<struct IntuiMessage *>(IExec->GetMsg(window->UserPort)))) {
-        switch (msg->Class) {
-            case IDCMP_CLOSEWINDOW:
-                running = false;
-                break;
-            case IDCMP_EXTENDEDMOUSE:
-                HandleExtendedMouse(reinterpret_cast<struct IntuiWheelData *>(msg->IAddress));
-                break;
-            case IDCMP_MENUPICK:
-                running = HandleMenuPick();
-                break;
-            case IDCMP_MOUSEBUTTONS:
-                HandleMouseButtons(msg->Code);
-                break;
-            case IDCMP_MOUSEMOVE:
-                HandleMouseMove(msg->MouseX, msg->MouseY);
-                break;
-            case IDCMP_NEWSIZE:
-                HandleNewSize();
-                break;
-            case IDCMP_RAWKEY:
-                running = HandleRawKey(msg->Code);
-                break;
-            case IDCMP_REFRESHWINDOW:
-                break;
-            default:
-                logging::Error("Unknown event %lu", msg->Class);
-                break;
+     if (!window) {
+        // When iconified, wait for some event to save CPU
+        uint32 winSig = 0;
+        if (!IIntuition->GetAttr(WINDOW_SigMask, windowObject, &winSig)) {
+		    logging::Error("GetAttr failed on line %d", __LINE__);
         }
 
-        IExec->ReplyMsg(reinterpret_cast<struct Message *>(msg));
+        const ULONG signals = IExec->Wait(winSig | SIGBREAKF_CTRL_C);
+
+        if (signals & SIGBREAKF_CTRL_C) {
+            logging::Log("Control-C while iconified");
+            running = false;
+        }
+    }
+
+    uint32 result;
+    int16 code = 0;
+
+    while ((result = IIntuition->IDoMethod(windowObject, WM_HANDLEINPUT, &code)) != WMHI_LASTMSG) {
+        switch (result & WMHI_CLASSMASK) {
+            case WMHI_CLOSEWINDOW:
+                running = false;
+                break;
+            case WMHI_MENUPICK:
+                running = HandleMenuPick();
+                break;
+            case WMHI_NEWSIZE:
+                HandleNewSize();
+                break;
+            case WMHI_ICONIFY:
+                HandleIconify();
+                break;
+            case WMHI_UNICONIFY:
+                HandleUniconify();
+                break;
+            case WMHI_RAWKEY:
+                running = HandleRawKey();
+                break;
+            //case IDCMP_REFRESHWINDOW:
+                // TODO: is this needed?
+            //    break;
+            default:
+                logging::Error("Unknown event %lX, code %d", result,  code);
+                break;
+        }
+    }
+
+    if (IExec->SetSignal(0, SIGBREAKF_CTRL_C) & SIGBREAKF_CTRL_C) {
+        logging::Log("Control-C");
+        running = false;
     }
 
     return running;
@@ -411,8 +488,17 @@ void GuiWindow::HandleNewSize()
     Set(EFlag::Resize);
 }
 
-bool GuiWindow::HandleRawKey(UWORD code)
+bool GuiWindow::HandleRawKey()
 {
+	InputEvent *ie;
+
+	if (!IIntuition->GetAttr(WINDOW_InputEvent, windowObject, reinterpret_cast<ULONG *>(&ie))) {
+		logging::Error("GetAttr failed on line %d", __LINE__);
+		return 0;
+	}
+
+    const auto code = ie->ie_Code & 0x7F;
+
     bool running { true };
 
     // TODO: cursor panning
@@ -449,6 +535,23 @@ bool GuiWindow::HandleRawKey(UWORD code)
     }
 
     return running;
+}
+
+void GuiWindow::HandleIconify()
+{
+    //if (!screen) {
+        window = nullptr;
+        IIntuition->IDoMethod(windowObject, WM_ICONIFY);
+    //}
+}
+
+void GuiWindow::HandleUniconify()
+{
+    window = reinterpret_cast<Window *>(IIntuition->IDoMethod(windowObject, WM_OPEN));
+
+    if (!window) {
+        throw std::runtime_error("Failed to reopen window");
+    }
 }
 
 void GuiWindow::SetTitle(const char* title)
@@ -550,16 +653,17 @@ Window* GuiWindow::WindowPtr() const
 
 void GuiWindow::Draw(const BackBuffer* backBuffer) const
 {
-    const uint32 winw = window->Width - (window->BorderLeft + window->BorderRight);
-    const uint32 winh = window->Height - (window->BorderTop + window->BorderBottom);
+    if (window) {
+        const uint32 winw = window->Width - (window->BorderLeft + window->BorderRight);
+        const uint32 winh = window->Height - (window->BorderTop + window->BorderBottom);
 
-    IGraphics->BltBitMapRastPort(backBuffer->Data(), 0, 0, window->RPort,
-        window->BorderLeft,
-        window->BorderTop,
-        static_cast<WORD>(std::min(winw, width)),
-        static_cast<WORD>(std::min(winh, height)),
-        0xC0);
-
+        IGraphics->BltBitMapRastPort(backBuffer->Data(), 0, 0, window->RPort,
+            window->BorderLeft,
+            window->BorderTop,
+            static_cast<WORD>(std::min(winw, width)),
+            static_cast<WORD>(std::min(winh, height)),
+            0xC0);
+    }
 }
 
 } // fractalnova
