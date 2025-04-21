@@ -393,8 +393,8 @@ void GuiWindow::HandleMouseButtons(UWORD code)
 void GuiWindow::HandleMouseMove(int mouseX, int mouseY)
 {
     if (panning) {
-        position.x += static_cast<float>(mouseX) / static_cast<float>(width / 2) / zoom;
-        position.y += static_cast<float>(mouseY) / static_cast<float>(height / 2) / zoom;
+        position.x += static_cast<float>(mouseX) / static_cast<float>(width) / zoom;
+        position.y += static_cast<float>(mouseY) / static_cast<float>(height) / zoom;
     }
 }
 
