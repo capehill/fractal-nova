@@ -21,6 +21,7 @@ struct VertexShaderData {
 
 VertexShader::VertexShader(W3DN_Context* context, const std::string& fileName): Shader(context, fileName + ".vert.spv")
 {
+    logging::Debug("Create VertexShader %s", fileName.c_str());
     dbo = std::make_unique<DataBuffer>(context, W3DNST_VERTEX, sizeof(VertexShaderData), shader);
 }
 
@@ -36,6 +37,12 @@ void VertexShader::UpdateDBO(const float zoom, Vertex& oldPosition, const Vertex
 
     constexpr uint64 readOffset = 0;
     constexpr uint64 readSize = 0;
+
+    logging::Detail("Update vertex shader DBO: angle %f, zoom %f, point { %f, %f }",
+                    angle * toRadians,
+                    zoom,
+                    position.x + oldPosition.x,
+                    position.y + oldPosition.y);
 
     W3DN_BufferLock* lock = context->DBOLock(&errCode, dbo->Ptr(), readOffset, readSize);
 

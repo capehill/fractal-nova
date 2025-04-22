@@ -229,6 +229,8 @@ GuiWindow::GuiWindow()
         this
     };
 
+    logging::Debug("Create GuiWindow");
+
     appPort = static_cast<MsgPort *>(IExec->AllocSysObjectTags(ASOT_PORT, TAG_DONE));
 
     if (!appPort) {
@@ -281,7 +283,6 @@ GuiWindow::GuiWindow()
 GuiWindow::~GuiWindow()
 {
     if (windowObject) {
-        //IIntuition->CloseWindow(window);
         IIntuition->DisposeObject(windowObject);
         windowObject = nullptr;
         window = nullptr;
@@ -342,7 +343,7 @@ bool GuiWindow::Run()
                 // TODO: is this needed?
             //    break;
             default:
-                logging::Error("Unknown event %lX, code %d", result,  code);
+                logging::Debug("Unknown event %lX, code %d", result,  code);
                 break;
         }
     }

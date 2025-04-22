@@ -25,6 +25,8 @@ static struct Library* NovaBase;
 NovaContext::NovaContext(const GuiWindow& window, const bool vsync, const int iterations)
     : NovaObject(nullptr), window(window), iterations(iterations), vsync(vsync)
 {
+    logging::Debug("Create NovaContext");
+
     NovaBase = IExec->OpenLibrary("Warp3DNova.library", 1);
 
     if (NovaBase) {

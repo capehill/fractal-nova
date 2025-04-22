@@ -1,4 +1,5 @@
 #include "Texture.hpp"
+#include "Logger.hpp"
 
 namespace fractalnova {
 
@@ -12,6 +13,8 @@ Texture::Texture(W3DN_Context* context, const std::vector<Color>& colors): NovaO
     constexpr uint32 height = 1;
     constexpr uint32 depth = 1;
     constexpr BOOL mipmapped = FALSE;
+
+    logging::Debug("Create texture");
 
     texture = context->CreateTexture(&errCode, W3DN_TEXTURE_2D, W3DNPF_RGBA, W3DNEF_UINT8,
         colors.size(), height, depth, mipmapped, W3DN_STATIC_DRAW);

@@ -14,6 +14,7 @@ struct FragmentShaderData {
 
 FragmentShader::FragmentShader(W3DN_Context* context, const std::string& fileName): Shader(context, fileName + ".frag.spv")
 {
+    logging::Debug("Create FragmentShader %s", fileName.c_str());
     dbo = std::make_unique<DataBuffer>(context, W3DNST_FRAGMENT, sizeof(FragmentShaderData), shader);
 }
 
@@ -28,10 +29,15 @@ void FragmentShader::UpdateDBO(const int iterations, const Vertex& complex) cons
     constexpr uint64 readOffset = 0;
     constexpr uint64 readSize = 0;
 
+    logging::Detail("Update fragment shader DBO: iterations %d, complex {%f, %f}",
+                    iterations,
+                    complex.x,
+                    complex.y);
+
     W3DN_BufferLock* lock = context->DBOLock(&errCode, dbo->Ptr(), readOffset, readSize);
 
     if (!lock) {
-        ThrowOnError(errCode, "Failed to lock data buffer object (fragment)");
+        ThrowOnError(errCode, "Failed to lock fragment shader DBO");
     }
 
     auto data = reinterpret_cast<FragmentShaderData *>(lock->buffer);
@@ -43,7 +49,7 @@ void FragmentShader::UpdateDBO(const int iterations, const Vertex& complex) cons
 
     errCode = context->BufferUnlock(lock, writeOffset, sizeof(FragmentShaderData));
 
-    ThrowOnError(errCode, "Failed to unlock data buffer object (fragment)");
+    ThrowOnError(errCode, "Failed to unlock fragment shader DBO");
 }
 
 

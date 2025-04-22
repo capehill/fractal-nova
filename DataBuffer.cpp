@@ -1,4 +1,5 @@
 #include "DataBuffer.hpp"
+#include "Logger.hpp"
 
 namespace fractalnova {
 
@@ -7,6 +8,8 @@ static constexpr uint32 bufferIdx = 0;
 DataBuffer::DataBuffer(W3DN_Context* context, const W3DN_ShaderType shaderType, const std::size_t size, W3DN_Shader* shader): NovaObject(context), shaderType(shaderType)
 {
     W3DN_ErrorCode errCode;
+
+    logging::Debug("Create DataBuffer for shader type %d, size %zu", shaderType, size);
 
     dbo = context->CreateDataBufferObjectTags(&errCode, size, W3DN_STREAM_DRAW, 1,
         TAG_DONE);

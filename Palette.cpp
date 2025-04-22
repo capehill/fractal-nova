@@ -8,6 +8,7 @@ namespace fractalnova {
 
 Palette::Palette(const EPalette palette, const int size): size(size)
 {
+    logging::Debug("Create Palette %d, size %d", static_cast<int>(palette), size);
     Create(palette);
 }
 

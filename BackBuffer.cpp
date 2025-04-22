@@ -14,7 +14,7 @@ BackBuffer::BackBuffer(uint32 width, uint32 height, BitMap* friendBitMap)
         BMATags_Displayable, TRUE,
         TAG_DONE);
 
-    logging::Debug("Bitmap size %lu * %lu", width, height);
+    logging::Debug("Create BackBuffer of size %lu * %lu", width, height);
 
     if (!bitMap) {
         throw std::runtime_error("Failed to allocate bitmap");

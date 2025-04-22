@@ -15,7 +15,7 @@ namespace {
 
 Buffer::Buffer(const size_t size): size(size)
 {
-    logging::Debug("Creating buffer of %zu bytes", size);
+    logging::Debug("Create Buffer of %zu bytes", size);
 
     data = static_cast<char *>(IExec->AllocVecTags(size + 8, AVT_ClearWithValue, 0, TAG_DONE));
 

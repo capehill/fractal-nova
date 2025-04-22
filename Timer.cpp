@@ -1,4 +1,5 @@
 #include "Timer.hpp"
+#include "Logger.hpp"
 
 #include <proto/exec.h>
 #include <proto/timer.h>
@@ -9,6 +10,8 @@ namespace fractalnova {
 
 Timer::Timer()
 {
+    logging::Debug("Create Timer");
+
     port = static_cast<struct MsgPort *>(IExec->AllocSysObjectTags(ASOT_PORT,
         ASOPORT_Name, "timer_port",
         TAG_DONE));

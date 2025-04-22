@@ -1,5 +1,6 @@
 #include "VertexBuffer.hpp"
 #include "Vertex.hpp"
+#include "Logger.hpp"
 
 namespace fractalnova {
 
@@ -23,6 +24,8 @@ VertexBuffer::VertexBuffer(W3DN_Context* context): NovaObject(context)
     constexpr uint32 arrayCount { 2 };
 
     W3DN_ErrorCode errCode;
+
+    logging::Debug("Create VertexBuffer");
 
     vbo = context->CreateVertexBufferObjectTags(&errCode,
         vertexCount * sizeof(Vertex4), W3DN_STATIC_DRAW, arrayCount, TAG_DONE);

@@ -12,6 +12,7 @@ static constexpr bool verbose { false };
 
 Shader::Shader(W3DN_Context* context, const std::string& fileName): NovaObject(context)
 {
+    logging::Debug("Create Shader %s", fileName.c_str());
     Compile(fileName);
 }
 
@@ -49,7 +50,7 @@ void Shader::Compile(const std::string& fileName)
     }
 
     if (shaderLog) {
-        logging::Debug("%s compilation log:\n%s", fileName.c_str(), shaderLog);
+        logging::Detail("%s compilation log:\n%s", fileName.c_str(), shaderLog);
         context->DestroyShaderLog(shaderLog);
     }
 }
