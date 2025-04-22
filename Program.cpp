@@ -11,7 +11,7 @@ Program::Program(W3DN_Context* context, const int iterations, const char* name):
     fragmentShader(std::make_unique<FragmentShader>(context, name)),
     iterations(iterations)
 {
-    logging::Log("Creating shader program '%s'", name);
+    logging::Debug("Creating shader program '%s'", name);
 
     W3DN_ErrorCode errCode;
     shaderPipeline = context->CreateShaderPipelineTags(&errCode,

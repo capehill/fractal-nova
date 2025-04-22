@@ -49,7 +49,7 @@ void Shader::Compile(const std::string& fileName)
     }
 
     if (shaderLog) {
-        logging::Log("%s compilation log:\n%s", fileName.c_str(), shaderLog);
+        logging::Debug("%s compilation log:\n%s", fileName.c_str(), shaderLog);
         context->DestroyShaderLog(shaderLog);
     }
 }

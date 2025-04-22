@@ -310,7 +310,7 @@ bool GuiWindow::Run()
         const ULONG signals = IExec->Wait(winSig | SIGBREAKF_CTRL_C);
 
         if (signals & SIGBREAKF_CTRL_C) {
-            logging::Log("Control-C while iconified");
+            logging::Debug("Control-C while iconified");
             running = false;
         }
     }
@@ -348,7 +348,7 @@ bool GuiWindow::Run()
     }
 
     if (IExec->SetSignal(0, SIGBREAKF_CTRL_C) & SIGBREAKF_CTRL_C) {
-        logging::Log("Control-C");
+        logging::Debug("Control-C");
         running = false;
     }
 
@@ -588,7 +588,7 @@ void GuiWindow::ZoomIn()
     zoom *= GetZoomStep();
 
     if (zoom > maxZoom) {
-        logging::Log("Cannot zoom closer");
+        logging::Debug("Cannot zoom closer");
         zoom = maxZoom;
     }
 }
@@ -600,7 +600,7 @@ void GuiWindow::ZoomOut()
     zoom /= GetZoomStep();
 
     if (zoom < minZoom) {
-        logging::Log("Cannot zoom further");
+        logging::Debug("Cannot zoom further");
         zoom = minZoom;
     }
 }

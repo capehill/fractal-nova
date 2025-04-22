@@ -101,7 +101,7 @@ std::vector<Color> Palette::GetColorArray()
         weight += wc.w;
     }
 
-    logging::Log("Palette size %d, total weight %f", size, weight);
+    logging::Debug("Palette size %d, total weight %f", size, weight);
 
     if (weight <= 0.0f || weightedColors.size() < 2) {
         throw std::runtime_error("Invalid weight");

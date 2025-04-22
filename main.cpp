@@ -40,12 +40,12 @@ void ParseArgs()
 
     if (result) {
         if (params.verbose) {
-            logging::MakeVerbose();
+            logging::SetLevel(logging::ELevel::Debug);
         }
 
-        logging::Log("VSYNC [%s]", ToString(params.vsync));
-        logging::Log("Lazy clear [%s]", ToString(params.lazyClear));
-        logging::Log("Verbose [%s]", ToString(params.verbose));
+        logging::Debug("VSYNC [%s]", ToString(params.vsync));
+        logging::Debug("Lazy clear [%s]", ToString(params.lazyClear));
+        logging::Debug("Verbose [%s]", ToString(params.verbose));
 
         if (params.iter) {
             iterations = *params.iter;
@@ -55,7 +55,7 @@ void ParseArgs()
                 iterations = maxIter;
             }
         }
-        logging::Log("ITER [%ld]", iterations);
+        logging::Debug("ITER [%ld]", iterations);
 
         IDOS->FreeArgs(result);
     } else {

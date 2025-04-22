@@ -1,50 +1,94 @@
 #include "Logger.hpp"
+#include "Buffer.hpp"
+
+#include <proto/exec.h>
 
 #include <cstdarg>
 #include <cstdio>
 
 namespace logging {
 
-static bool verbose { false };
+static constexpr unsigned bufferSize { 4 * 1024 };
 
-void MakeVerbose()
+static ELevel logLevel { ELevel::Info };
+
+ELevel Level()
 {
-    verbose = true;
+    return logLevel;
+}
+
+void SetLevel(const enum ELevel level)
+{
+    logLevel = level;
 }
 
 bool IsVerbose()
 {
-    return verbose;
+    return logLevel < ELevel::Info;
 }
 
-static void LogImpl(const char * fmt, va_list ap)
+static void LogImpl(const enum ELevel level, const char * fmt, va_list ap)
 {
-    char buffer[16 * 1024];
-    const int len = vsnprintf(buffer, sizeof(buffer), fmt, ap);
-    puts(buffer);
-
-    if (len >= static_cast<int>(sizeof(buffer))) {
-        printf("Insufficient log buffer: %d bytes needed", len);
+    if (level < logLevel) {
+        return;
     }
+
+    va_list copy;
+    va_copy(copy, ap);
+    const unsigned len = vsnprintf(nullptr, 0, fmt, copy) + 1;
+    va_end(copy);
+
+    if (len < bufferSize) {
+        char buffer[bufferSize];
+        vsnprintf(buffer, sizeof(buffer), fmt, ap);
+        puts(buffer);
+    } else {
+        fractalnova::Buffer temp { len };
+        vsnprintf(temp.Data(), len, fmt, ap);
+        puts(temp.Data());
+    }
+
+    fflush(stdout);
 }
 
-void Log(const char* fmt, ...)
+void Detail(const char* fmt, ...)
 {
-    if (verbose) {
-        va_list ap;
-        va_start(ap, fmt);
-        LogImpl(fmt, ap);
-        va_end(ap);
-    }
+    va_list ap;
+    va_start(ap, fmt);
+    LogImpl(ELevel::Detail, fmt, ap);
+    va_end(ap);
+}
+
+void Debug(const char* fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    LogImpl(ELevel::Debug, fmt, ap);
+    va_end(ap);
+}
+
+void Info(const char* fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    LogImpl(ELevel::Info, fmt, ap);
+    va_end(ap);
+}
+
+void Warning(const char* fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    LogImpl(ELevel::Warning, fmt, ap);
+    va_end(ap);
 }
 
 void Error(const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
-    LogImpl(fmt, ap);
+    LogImpl(ELevel::Error, fmt, ap);
     va_end(ap);
 }
-
 
 } // logging

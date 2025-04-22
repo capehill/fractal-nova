@@ -112,7 +112,7 @@ void NovaContext::Resize()
 
     ThrowOnError(errCode, "Failed to set viewport");
 
-    logging::Log("Viewport %lu * %lu", width, height);
+    logging::Debug("Viewport %lu * %lu", width, height);
 }
 
 void NovaContext::Clear() const
@@ -183,7 +183,7 @@ void NovaContext::UseProgram(const EFractal fractal)
         return;
     }
 
-    logging::Log("Switch fractal %d", static_cast<int>(fractal));
+    logging::Debug("Switch fractal %d", static_cast<int>(fractal));
 
     current = fractal;
 
@@ -254,7 +254,7 @@ void NovaContext::UsePalette(const EPalette palette)
 
     current = palette;
 
-    logging::Log("Switch palette %d", static_cast<int>(palette));
+    logging::Debug("Switch palette %d", static_cast<int>(palette));
 
     Palette p { palette };
     CreateTexture(p);
