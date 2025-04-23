@@ -3,7 +3,9 @@
 #include "BackBuffer.hpp"
 #include "EMenu.hpp"
 
+#include <proto/dos.h>
 #include <proto/exec.h>
+#include <proto/icon.h>
 #include <proto/intuition.h>
 #include <proto/graphics.h>
 
@@ -32,7 +34,19 @@ Object* GuiWindow::CreateMenu()
             MA_Label, "Main",
             MA_AddChild, IIntuition->NewObject(nullptr, menuClass,
                 MA_Type, T_ITEM,
-                MA_Label, "Quit",
+                MA_Label, "?|About",
+                MA_ID, EMenu::About,
+                MA_Disabled, TRUE,
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, menuClass,
+                MA_Type, T_ITEM,
+                MA_Label, "I|Iconify",
+                MA_ID, EMenu::Iconify,
+                MA_Disabled, false, // TODO: screen
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, menuClass,
+                MA_Type, T_ITEM,
+                MA_Label, "Q|Quit",
                 MA_ID, EMenu::Quit,
                 TAG_DONE),
             TAG_DONE),
@@ -245,6 +259,34 @@ uint32 GuiWindow::IdcmpHook(Hook* hook, APTR window __attribute__((unused)), Int
     return 0;
 }
 
+static char* GetApplicationName()
+{
+    static constexpr int maxPathLen { 1024 };
+    static char pathBuffer[maxPathLen];
+
+    if (!IDOS->GetCliProgramName(pathBuffer, maxPathLen - 1)) {
+        //logging::Error("Failed to get CLI program name, checking task node");
+        snprintf(pathBuffer, maxPathLen, "%s", reinterpret_cast<Node *>(IExec->FindTask(nullptr))->ln_Name);
+    }
+
+    return pathBuffer;
+}
+
+static DiskObject* MyGetDiskObject()
+{
+    BPTR oldDir = IDOS->SetCurrentDir(IDOS->GetProgramDir());
+    DiskObject* diskObject = IIcon->GetDiskObject(GetApplicationName());
+
+    if (diskObject) {
+        diskObject->do_CurrentX = NO_ICON_POSITION;
+        diskObject->do_CurrentY = NO_ICON_POSITION;
+    }
+
+    IDOS->SetCurrentDir(oldDir);
+
+    return diskObject;
+}
+
 GuiWindow::GuiWindow(const Params& params):
     vsync(params.vsync),
     width(params.windowSize.width),
@@ -290,7 +332,7 @@ GuiWindow::GuiWindow(const Params& params):
         WA_SimpleRefresh, TRUE,
         WA_Borderless, fullscreen,
         WINDOW_IconifyGadget, !fullscreen,
-        //WINDOW_Icon, MyGetDiskObject(), TODO:
+        WINDOW_Icon, MyGetDiskObject(),
         WINDOW_AppPort, appPort, // For Iconification
         WINDOW_IDCMPHook, &idcmpHook,
         WINDOW_IDCMPHookBits, IDCMP_MOUSEBUTTONS | IDCMP_MOUSEMOVE | IDCMP_EXTENDEDMOUSE,
@@ -406,6 +448,10 @@ bool GuiWindow::HandleMenuPick()
 
     while ((id = static_cast<EMenu>(IIntuition->IDoMethod(menu, MM_NEXTSELECT, 0, id))) != EMenu::NoMenuId) {
         switch (id) {
+            case EMenu::Iconify:
+                HandleIconify();
+                break;
+
             case EMenu::Quit:
                 running = false;
                 break;
@@ -547,7 +593,7 @@ bool GuiWindow::HandleRawKey()
 
     bool running { true };
 
-    // TODO: cursor panning
+    // TODO: cursor panning, rotation
     if (code <= 127) {
         switch (code) {
             case RAWKEY_ESC:
@@ -602,7 +648,9 @@ void GuiWindow::HandleUniconify()
 
 void GuiWindow::SetTitle(const char* title)
 {
-    IIntuition->SetWindowTitles(window, title, name);
+    if (window) {
+        IIntuition->SetWindowTitles(window, title, name);
+    }
 }
 
 Vertex GuiWindow::GetPosition() const
