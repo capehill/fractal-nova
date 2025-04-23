@@ -31,8 +31,8 @@ struct Params
     bool lazyClear { false };
     int iterations { 100 };
 
-    Resolution windowSize;
-    Resolution screenSize;
+    Resolution windowSize {};
+    Resolution screenSize {};
 };
 
 class GuiWindow
@@ -48,21 +48,23 @@ public:
 
     Vertex GetPosition() const;
     void ClearPosition();
+
     float GetZoom() const;
 
-    uint32 Width() const;
-    uint32 Height() const;
+    uint32 Width() const { return windowSize.width; }
+    uint32 Height() const { return windowSize.height; }
 
-    EFractal GetFractal() const;
-    EPalette GetPalette() const;
+    EFractal GetFractal() const { return fractal; };
+    EPalette GetPalette() const { return palette; }
 
     bool Flagged(EFlag flag) const;
     void Set(EFlag flag);
     void Clear(EFlag flag);
 
-    Window* WindowPtr() const;
+    Window* WindowPtr() const { return window; }
 
 private:
+    void CreateScreen();
     Object* CreateMenu();
 
     void HandleExtendedMouse(const struct IntuiWheelData* data);
@@ -89,15 +91,18 @@ private:
     Object* windowObject { nullptr };
     Window* window { nullptr };
     MsgPort* appPort { nullptr };
+    Screen* screen { nullptr };
 
     bool panning { false };
     bool fastZoom { false };
     bool vsync { false };
+    bool fullscreen { false };
 
     Vertex position { };
     float zoom { 1.0f };
-    uint32 width { 800 };
-    uint32 height { 600 };
+
+    Resolution screenSize {};
+    Resolution windowSize {};
 
     EFractal fractal { EFractal::Mandelbrot };
     EPalette palette { EPalette::Rainbow };

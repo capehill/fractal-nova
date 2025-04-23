@@ -42,7 +42,7 @@ Object* GuiWindow::CreateMenu()
                 MA_Type, T_ITEM,
                 MA_Label, "I|Iconify",
                 MA_ID, EMenu::Iconify,
-                MA_Disabled, false, // TODO: screen
+                MA_Disabled, screen,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, menuClass,
                 MA_Type, T_ITEM,
@@ -287,10 +287,89 @@ static DiskObject* MyGetDiskObject()
     return diskObject;
 }
 
+static ULONG FindScreenMode(const uint32 screenWidth, const uint32 screenHeight)
+{
+    ULONG found = INVALID_ID;
+
+    if (screenWidth && screenHeight) {
+        ULONG id = INVALID_ID;
+
+        while ((id = IGraphics->NextDisplayInfo(id)) != INVALID_ID) {
+            APTR handle = IGraphics->FindDisplayInfo(id);
+            if (!handle) {
+                logging::Error("Failed to find display info");
+                break;
+            }
+
+            DimensionInfo dimInfo;
+
+            if (!IGraphics->GetDisplayInfoData(handle, reinterpret_cast<UBYTE *>(&dimInfo), sizeof(dimInfo), DTAG_DIMS, 0)) {
+                logging::Error("Failed to get dim info");
+                break;
+            }
+
+            DisplayInfo dispInfo;
+
+            if (!IGraphics->GetDisplayInfoData(handle, reinterpret_cast<UBYTE *>(&dispInfo), sizeof(dispInfo), DTAG_DISP, 0)) {
+                logging::Error("Failed to get disp info");
+                break;
+            }
+
+            if ((dispInfo.PropertyFlags & DIPF_IS_RTG) && dimInfo.MaxDepth >= 24) {
+                const uint32 w = dimInfo.Nominal.MaxX - dimInfo.Nominal.MinX + 1;
+                const uint32 h = dimInfo.Nominal.MaxY - dimInfo.Nominal.MinY + 1;
+
+                logging::Debug("Found screen mode %lu: width %lu, height %lu, depth %u", id, w, h, dimInfo.MaxDepth);
+
+                if (screenWidth == w && screenHeight == h) {
+                    logging::Debug("Match!");
+                    found = id;
+                    break;
+                }
+            }
+        }
+    }
+
+    return found;
+}
+
+void GuiWindow::CreateScreen()
+{
+    if (screen) {
+        logging::Error("Screen exists already");
+        return;
+    }
+
+    const ULONG id = FindScreenMode(screenSize.width, screenSize.height);
+
+    if (id == INVALID_ID) {
+        logging::Debug("Try to open Workbench-like screen");
+
+        screen = IIntuition->OpenScreenTags(nullptr,
+            SA_LikeWorkbench, TRUE,
+            SA_ShowTitle, FALSE,
+            TAG_DONE);
+    } else {
+        logging::Debug("Try to open requested screen");
+
+        screen = IIntuition->OpenScreenTags(nullptr,
+            SA_ShowTitle, FALSE,
+            SA_DisplayID, id,
+            SA_LikeWorkbench, TRUE,
+            TAG_DONE);
+    }
+
+    if (!screen) {
+        logging::Error("Failed to open screen");
+        // Fullscreen is not essential for the application, hence no exception!
+    }
+}
+
 GuiWindow::GuiWindow(const Params& params):
     vsync(params.vsync),
-    width(params.windowSize.width),
-    height(params.windowSize.height)
+    fullscreen(params.fullscreen),
+    screenSize(params.screenSize),
+    windowSize(params.windowSize)
 {
     static Hook idcmpHook {
         { 0, 0 },
@@ -307,16 +386,33 @@ GuiWindow::GuiWindow(const Params& params):
         throw std::runtime_error("Failed to create app port");
     }
 
-    constexpr bool fullscreen = false;
+    Screen* pubScreen = nullptr;
+
+    // TODO: FPS counter in fullscreen?
+    // TODO: toggle fullscreen <-> window?
+    if (fullscreen) {
+        CreateScreen();
+    }
+
+    if (screen) {
+        windowSize.width = screen->Width;
+        windowSize.height = screen->Height;
+    } else {
+        //windowSize.width = innerWidth ? innerWidth : windowSize.width;
+        //windowSize.height = innerHeight ? innerHeight : windowSize.height;
+        pubScreen = IIntuition->LockPubScreen(nullptr);
+    }
+
+    //logging::Info("public screen %p", static_cast<void*>(pubScreen));
 
     windowObject = IIntuition->NewObject(nullptr, "window.class",
         WA_Activate, TRUE,
         WA_Title, !fullscreen ? name : nullptr,
         WA_ScreenTitle, name,
-        // WA_Pubscreen, pubScreen ? pubScreen : screen, TODO:
+        WA_PubScreen, pubScreen ? pubScreen : screen,
         WA_BackFill, LAYERS_NOBACKFILL,
-        WA_InnerWidth, width,
-        WA_InnerHeight, height,
+        WA_InnerWidth, windowSize.width,
+        WA_InnerHeight, windowSize.height,
         WA_MinHeight, 200,
         WA_MinWidth, 200,
         WA_MaxHeight, 2048,
@@ -345,6 +441,10 @@ GuiWindow::GuiWindow(const Params& params):
 
     window = reinterpret_cast<Window *>(IIntuition->IDoMethod(windowObject, WM_OPEN));
 
+    if (pubScreen) {
+        IIntuition->UnlockPubScreen(nullptr, pubScreen);
+    }
+
     if (!window) {
         throw std::runtime_error("Failed to open window");
     }
@@ -356,6 +456,11 @@ GuiWindow::~GuiWindow()
         IIntuition->DisposeObject(windowObject);
         windowObject = nullptr;
         window = nullptr;
+    }
+
+    if (screen) {
+        IIntuition->CloseScreen(screen);
+        screen = nullptr;
     }
 
     if (appPort) {
@@ -562,16 +667,16 @@ void GuiWindow::HandleMouseButtons(UWORD code)
 void GuiWindow::HandleMouseMove(int mouseX, int mouseY)
 {
     if (panning) {
-        position.x += static_cast<float>(mouseX) / static_cast<float>(width) / zoom;
-        position.y += static_cast<float>(mouseY) / static_cast<float>(height) / zoom;
+        position.x += static_cast<float>(mouseX) / static_cast<float>(windowSize.width) / zoom;
+        position.y += static_cast<float>(mouseY) / static_cast<float>(windowSize.height) / zoom;
     }
 }
 
 void GuiWindow::HandleNewSize()
 {
     if ((IIntuition->GetWindowAttrs(window,
-        WA_InnerWidth, &width,
-        WA_InnerHeight, &height,
+        WA_InnerWidth, &windowSize.width,
+        WA_InnerHeight, &windowSize.height,
         TAG_DONE)) != 0)
     {
         throw std::runtime_error("Failed to get window attributes");
@@ -593,7 +698,7 @@ bool GuiWindow::HandleRawKey()
 
     bool running { true };
 
-    // TODO: cursor panning, rotation
+    // TODO: cursor panning? rotation (is problematic with panning)
     if (code <= 127) {
         switch (code) {
             case RAWKEY_ESC:
@@ -705,26 +810,6 @@ void GuiWindow::ResetView()
     Set(EFlag::Reset);
 }
 
-uint32 GuiWindow::Width() const
-{
-    return width;
-}
-
-uint32 GuiWindow::Height() const
-{
-    return height;
-}
-
-EFractal GuiWindow::GetFractal() const
-{
-    return fractal;
-}
-
-EPalette GuiWindow::GetPalette() const
-{
-    return palette;
-}
-
 bool GuiWindow::Flagged(const EFlag flag) const
 {
     return flags & static_cast<uint32>(flag);
@@ -740,11 +825,6 @@ void GuiWindow::Clear(const EFlag flag)
     flags &= ~static_cast<uint32>(flag);
 }
 
-Window* GuiWindow::WindowPtr() const
-{
-    return window;
-}
-
 void GuiWindow::Draw(const BackBuffer* backBuffer) const
 {
     if (window) {
@@ -758,8 +838,8 @@ void GuiWindow::Draw(const BackBuffer* backBuffer) const
         IGraphics->BltBitMapRastPort(backBuffer->Data(), 0, 0, window->RPort,
             window->BorderLeft,
             window->BorderTop,
-            static_cast<WORD>(std::min(winw, width)),
-            static_cast<WORD>(std::min(winh, height)),
+            static_cast<WORD>(std::min(winw, windowSize.width)),
+            static_cast<WORD>(std::min(winh, windowSize.height)),
             0xC0);
     }
 }
