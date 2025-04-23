@@ -3,6 +3,8 @@
 #include "Vertex.hpp"
 #include "EFractal.hpp"
 #include "EPalette.hpp"
+#include "Logger.hpp"
+#include "EMenu.hpp"
 
 #include <proto/intuition.h>
 
@@ -61,6 +63,8 @@ private:
     void ZoomIn();
     void ZoomOut();
 
+    void ToggleLogLevel(const EMenu id);
+
     static uint32 IdcmpHook(Hook* hook, APTR window, IntuiMessage* msg);
 
     Object* windowObject { nullptr };
@@ -77,6 +81,8 @@ private:
 
     EFractal fractal { EFractal::Mandelbrot };
     EPalette palette { EPalette::Rainbow };
+
+    logging::ELevel logLevel { logging::ELevel::Info };
 
     uint32 flags { 0 };
 };

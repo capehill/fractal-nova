@@ -21,33 +21,6 @@ namespace fractalnova {
 static const char* const name { "Fractal Nova" };
 static const char* const menuClass { "menuclass" };
 
-enum class EMenu {
-    Iconify = 1,
-    About,
-    Quit,
-    ResetView,
-    // Fractals
-    Mandelbrot,
-    Julia1,
-    Julia2,
-    Julia3,
-    Julia4,
-    Julia5,
-    Julia6,
-    Julia7,
-    Julia8,
-    Julia9,
-    Julia10,
-    // Palettes
-    Rainbow,
-    RainbowRev,
-    Red,
-    Green,
-    Blue,
-    BlackAndWhite,
-    BlackAndWhiteRev
-};
-
 Object* GuiWindow::CreateMenu()
 {
     Object* menu = IIntuition->NewObject(nullptr, menuClass,
@@ -58,13 +31,57 @@ Object* GuiWindow::CreateMenu()
             MA_Label, "Main",
             MA_AddChild, IIntuition->NewObject(nullptr, menuClass,
                 MA_Type, T_ITEM,
+                MA_Label, "Quit",
+                MA_ID, EMenu::Quit,
+                TAG_DONE),
+            TAG_DONE),
+        // Control
+        MA_AddChild, IIntuition->NewObject(nullptr, menuClass,
+            MA_Type, T_MENU,
+            MA_Label, "Control",
+            MA_AddChild, IIntuition->NewObject(nullptr, menuClass,
+                MA_Type, T_ITEM,
                 MA_Label, "Reset view",
                 MA_ID, EMenu::ResetView,
                 TAG_DONE),
-            MA_AddChild, IIntuition->NewObject(nullptr, menuClass,
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
-                MA_Label, "Quit",
-                MA_ID, EMenu::Quit,
+                MA_Label, "Log level",
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "Detail",
+                    MA_ID, EMenu::LogDetail,
+                    MA_Selected, logLevel == logging::ELevel::Detail,
+                    MA_MX, ~(1 << 0),
+                    TAG_DONE),
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "Debug",
+                    MA_ID, EMenu::LogDebug,
+                    MA_Selected, logLevel == logging::ELevel::Debug,
+                    MA_MX, ~(1 << 1),
+                    TAG_DONE),
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "Info",
+                    MA_ID, EMenu::LogInfo,
+                    MA_Selected, logLevel == logging::ELevel::Info,
+                    MA_MX, ~(1 << 2),
+                    TAG_DONE),
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "Warning",
+                    MA_ID, EMenu::LogWarning,
+                    MA_Selected, logLevel == logging::ELevel::Warning,
+                    MA_MX, ~(1 << 3),
+                    TAG_DONE),
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "Error",
+                    MA_ID, EMenu::LogError,
+                    MA_Selected, logLevel == logging::ELevel::Error,
+                    MA_MX, ~(1 << 4),
+                    TAG_DONE),
                 TAG_DONE),
             TAG_DONE),
         // Fractal
@@ -369,17 +386,29 @@ bool GuiWindow::HandleMenuPick()
 {
     bool running { true };
 
-    uint32 id = NO_MENU_ID;
+    EMenu id = EMenu::NoMenuId;
 
     const EFractal currentFractal = fractal;
 
-    while (((id = IIntuition->IDoMethod(reinterpret_cast<Object *>(window->MenuStrip), MM_NEXTSELECT, 0, id))) != NO_MENU_ID) {
-        switch (static_cast<EMenu>(id)) {
+    auto menu = reinterpret_cast<Object *>(window->MenuStrip);
+
+    while ((id = static_cast<EMenu>(IIntuition->IDoMethod(menu, MM_NEXTSELECT, 0, id))) != EMenu::NoMenuId) {
+        switch (id) {
             case EMenu::Quit:
                 running = false;
                 break;
+
+            // Control
             case EMenu::ResetView:
                 ResetView();
+                break;
+
+            case EMenu::LogDetail:
+            case EMenu::LogDebug:
+            case EMenu::LogInfo:
+            case EMenu::LogWarning:
+            case EMenu::LogError:
+                ToggleLogLevel(id);
                 break;
 
             // Fractals
@@ -442,7 +471,7 @@ bool GuiWindow::HandleMenuPick()
                 palette = EPalette::BlackAndWhiteRev;
                 break;
             default:
-                logging::Error("Unhandled menu ID %lu", id);
+                logging::Error("Unhandled menu ID %lu", static_cast<uint32>(id));
                 break;
         }
     }
@@ -665,6 +694,32 @@ void GuiWindow::Draw(const BackBuffer* backBuffer) const
             static_cast<WORD>(std::min(winh, height)),
             0xC0);
     }
+}
+
+void GuiWindow::ToggleLogLevel(const EMenu id)
+{
+    switch (id) {
+        case EMenu::LogDetail:
+            logLevel = logging::ELevel::Detail;
+            break;
+        case EMenu::LogDebug:
+            logLevel = logging::ELevel::Debug;
+            break;
+        case EMenu::LogInfo:
+            logLevel = logging::ELevel::Info;
+            break;
+        case EMenu::LogWarning:
+            logLevel = logging::ELevel::Warning;
+            break;
+        case EMenu::LogError:
+            logLevel = logging::ELevel::Error;
+            break;
+        default:
+            logging::Error("Unknown menu item %d", static_cast<int>(id));
+            break;
+    }
+
+    logging::SetLevel(logLevel);
 }
 
 } // fractalnova
