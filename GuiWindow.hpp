@@ -21,7 +21,7 @@ class BackBuffer;
 class GuiWindow
 {
 public:
-    GuiWindow();
+    GuiWindow(bool vsync);
     ~GuiWindow();
 
     bool Run();
@@ -63,6 +63,8 @@ private:
     void ZoomIn();
     void ZoomOut();
 
+    void ToggleMenuItem(const EMenu id, bool state);
+    void ToggleVSync();
     void ToggleLogLevel(const EMenu id);
 
     static uint32 IdcmpHook(Hook* hook, APTR window, IntuiMessage* msg);
@@ -73,6 +75,7 @@ private:
 
     bool panning { false };
     bool fastZoom { false };
+    bool vsync { false };
 
     Vertex position { };
     float zoom { 1.0f };

@@ -23,7 +23,7 @@ class NovaContext: public NovaObject
 {
 public:
 
-    NovaContext(const GuiWindow& window, bool vsync, int iterations);
+    NovaContext(const GuiWindow& window, int iterations);
     ~NovaContext();
 
     void Resize();
@@ -55,8 +55,6 @@ private:
     uint32 height { 0 };
 
     const int iterations;
-
-    bool vsync { false };
 };
 
 } // fractalnova

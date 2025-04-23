@@ -22,8 +22,8 @@ namespace fractalnova {
 struct Warp3DNovaIFace* IW3DNova;
 static struct Library* NovaBase;
 
-NovaContext::NovaContext(const GuiWindow& window, const bool vsync, const int iterations)
-    : NovaObject(nullptr), window(window), iterations(iterations), vsync(vsync)
+NovaContext::NovaContext(const GuiWindow& window, const int iterations)
+    : NovaObject(nullptr), window(window), iterations(iterations)
 {
     logging::Debug("Create NovaContext");
 
@@ -154,10 +154,6 @@ void NovaContext::SwapBuffers()
     errCode = context->WaitDone(submitID, noTimeout);
 
     ThrowOnError(errCode, "WaitDone failed");
-
-    if (vsync) {
-        IGraphics->WaitTOF();
-    }
 
     window.Draw(backBuffer.get());
 }

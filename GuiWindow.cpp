@@ -44,6 +44,13 @@ Object* GuiWindow::CreateMenu()
                 MA_Label, "Reset view",
                 MA_ID, EMenu::ResetView,
                 TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, menuClass,
+                MA_Type, T_ITEM,
+                MA_Label, "VSync",
+                MA_ID, EMenu::VSync,
+                MA_Toggle, TRUE,
+                MA_Selected, vsync,
+                TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Log level",
@@ -237,7 +244,8 @@ uint32 GuiWindow::IdcmpHook(Hook* hook, APTR window __attribute__((unused)), Int
     return 0;
 }
 
-GuiWindow::GuiWindow()
+GuiWindow::GuiWindow(const bool vsync):
+    vsync(vsync)
 {
     static Hook idcmpHook {
         { 0, 0 },
@@ -269,7 +277,7 @@ GuiWindow::GuiWindow()
         WA_MaxHeight, 2048,
         WA_MaxWidth, 2048,
         WA_Flags, WFLG_REPORTMOUSE | WFLG_NEWLOOKMENUS,
-        WA_IDCMP, IDCMP_REFRESHWINDOW | IDCMP_NEWSIZE | IDCMP_CLOSEWINDOW | IDCMP_MOUSEBUTTONS | IDCMP_MOUSEMOVE |
+        WA_IDCMP, /*IDCMP_REFRESHWINDOW |*/ IDCMP_NEWSIZE | IDCMP_CLOSEWINDOW | IDCMP_MOUSEBUTTONS | IDCMP_MOUSEMOVE |
                   IDCMP_DELTAMOVE | IDCMP_EXTENDEDMOUSE | IDCMP_RAWKEY | IDCMP_MENUPICK,
         WA_CloseGadget, !fullscreen,
         WA_DragBar, !fullscreen,
@@ -356,9 +364,10 @@ bool GuiWindow::Run()
             case WMHI_RAWKEY:
                 running = HandleRawKey();
                 break;
-            //case IDCMP_REFRESHWINDOW:
-                // TODO: is this needed?
-            //    break;
+            case WMHI_MOUSEMOVE:
+            case WMHI_MOUSEBUTTONS:
+                // Handled in the hook
+                break;
             default:
                 logging::Debug("Unknown event %lX, code %d", result,  code);
                 break;
@@ -401,6 +410,10 @@ bool GuiWindow::HandleMenuPick()
             // Control
             case EMenu::ResetView:
                 ResetView();
+                break;
+
+            case EMenu::VSync:
+                ToggleVSync();
                 break;
 
             case EMenu::LogDetail:
@@ -684,6 +697,10 @@ Window* GuiWindow::WindowPtr() const
 void GuiWindow::Draw(const BackBuffer* backBuffer) const
 {
     if (window) {
+        if (vsync) {
+            IGraphics->WaitTOF();
+        }
+
         const uint32 winw = window->Width - (window->BorderLeft + window->BorderRight);
         const uint32 winh = window->Height - (window->BorderTop + window->BorderBottom);
 
@@ -694,6 +711,22 @@ void GuiWindow::Draw(const BackBuffer* backBuffer) const
             static_cast<WORD>(std::min(winh, height)),
             0xC0);
     }
+}
+
+void GuiWindow::ToggleMenuItem(const EMenu id, const bool state)
+{
+    auto menu = reinterpret_cast<Object *>(window->MenuStrip);
+
+    if (!IIntuition->IDoMethod(menu, MM_SETSTATE, 0, id, MS_CHECKED, state ? MS_CHECKED : 0)) {
+        logging::Error("Invalid menu id %d", static_cast<int>(id));
+    }
+}
+
+void GuiWindow::ToggleVSync()
+{
+    vsync = !vsync;
+
+    ToggleMenuItem(EMenu::VSync, vsync);
 }
 
 void GuiWindow::ToggleLogLevel(const EMenu id)

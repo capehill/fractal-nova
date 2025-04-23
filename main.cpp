@@ -76,8 +76,8 @@ int main(void)
     ParseArgs();
 
     try {
-        GuiWindow window;
-        NovaContext context { window, static_cast<bool>(params.vsync), iterations };
+        GuiWindow window { static_cast<bool>(params.vsync) };
+        NovaContext context { window, iterations };
         Timer timer;
 
         const uint64 start = timer.GetTicks();
