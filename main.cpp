@@ -4,8 +4,15 @@
 #include "Logger.hpp"
 
 #include <proto/dos.h>
+#include <proto/exec.h>
+#include <proto/icon.h>
 
+#include <workbench/startup.h>
+
+#include <algorithm>
+#include <array>
 #include <cstdio>
+#include <cstring>
 #include <exception>
 
 namespace fractalnova {
@@ -14,58 +21,133 @@ static constexpr double eventPeriod { 1.0 / 60.0 };
 static constexpr int minIter { 20 };
 static constexpr int maxIter { 1000 };
 
-static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 1.0 (13.3.2021)" };
+static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 1.1 (13.3.2025)" };
 
-struct Params {
-    LONG vsync;
-    LONG* iter;
-    LONG lazyClear;
-    LONG verbose;
-};
+static Params params;
 
-static Params params { 0, nullptr, 0, 0 };
-
-static int32 iterations { 100 };
-
-static const char* ToString(const bool b)
+static Resolution ParseResolution(const char* const str)
 {
-    return b ? "on" : "off";
+    Resolution r;
+
+    if (str) {
+        const std::string temp{ str };
+        const std::size_t pos = temp.find('x');
+        if (pos == std::string::npos) {
+            return r;
+        }
+
+        const std::string w = temp.substr(0, pos);
+        const std::string h = temp.substr(pos + 1);
+
+        r.width = atoi(w.c_str());
+        r.height = atoi(h.c_str());
+    }
+
+    return r;
 }
 
-void ParseArgs()
+static void ParseScreenMode(const char* const str)
 {
-    const char* const pattern = "VSYNC/S,ITER/N,LAZYCLEAR/S,VERBOSE/S";
+    params.screenSize = ParseResolution(str);
 
-    struct RDArgs *result = IDOS->ReadArgs(pattern, reinterpret_cast<int32 *>(&params), nullptr);
+    logging::Debug("SCREENMODE tooltype %lu x %lu", params.screenSize.width, params.screenSize.height);
+}
 
-    if (result) {
-        if (params.verbose) {
-            logging::SetLevel(logging::ELevel::Debug);
+static void ParseWindowSize(const char* const str)
+{
+    params.windowSize = ParseResolution(str);
+
+    logging::Debug("WINDOWSIZE tooltype %lu x %lu", params.windowSize.width, params.windowSize.height);
+}
+
+static logging::ELevel ConvertToLogLevel(const char* const str)
+{
+    struct LogLevelItem {
+        const char* const name;
+        logging::ELevel level;
+    };
+
+    constexpr std::array<LogLevelItem, 5> items {{
+        { "DETAIL", logging::ELevel::Detail },
+        { "DEBUG", logging::ELevel::Debug },
+        { "INFO", logging::ELevel::Info },
+        { "WARNING", logging::ELevel::Warning },
+        { "ERROR", logging::ELevel::Error }
+    }};
+
+    for (const auto& i: items) {
+        if (strcmp(i.name, str) == 0) {
+            return i.level;
         }
-
-        logging::Debug("VSYNC [%s]", ToString(params.vsync));
-        logging::Debug("Lazy clear [%s]", ToString(params.lazyClear));
-        logging::Debug("Verbose [%s]", ToString(params.verbose));
-
-        if (params.iter) {
-            iterations = *params.iter;
-            if (iterations < minIter) {
-                iterations = minIter;
-            } else if (iterations > maxIter) {
-                iterations = maxIter;
-            }
-        }
-        logging::Debug("ITER [%ld]", iterations);
-
-        IDOS->FreeArgs(result);
-    } else {
-        logging::Error("Error when reading command-line arguments. Known parameters are: %s", pattern);
     }
+
+    logging::Info("Unknown log level '%s'", str);
+
+    return logging::ELevel::Info;
+}
+
+static void ReadToolTypes(const char* const filename)
+{
+    if (filename) {
+        auto object = IIcon->GetDiskObject(filename);
+
+        if (object) {
+            params.vsync = IIcon->FindToolType(object->do_ToolTypes, "VSYNC");
+            params.fullscreen = IIcon->FindToolType(object->do_ToolTypes, "FULLSCREEN");
+            params.lazyClear = IIcon->FindToolType(object->do_ToolTypes, "LAZYCLEAR");
+
+            const char* const iterationsStr = IIcon->FindToolType(object->do_ToolTypes, "ITERATIONS");
+            if (iterationsStr) {
+                const int iterations = atoi(iterationsStr);
+                params.iterations = std::clamp(iterations, minIter, maxIter);
+            }
+
+            const char* const logLevelStr = IIcon->FindToolType(object->do_ToolTypes, "LOGLEVEL");
+            if (logLevelStr) {
+                logging::SetLevel(ConvertToLogLevel(logLevelStr));
+            }
+
+            ParseScreenMode(IIcon->FindToolType(object->do_ToolTypes, "SCREENMODE"));
+            ParseWindowSize(IIcon->FindToolType(object->do_ToolTypes, "WINDOWSIZE"));
+
+            IIcon->FreeDiskObject(object);
+        } else {
+            logging::Error("Failed to open disk object");
+        }
+    } else {
+        logging::Error("Filename is a nullptr");
+    }
+}
+
+static void CheckStack()
+{
+    auto task = IExec->FindTask(nullptr);
+    auto upper = static_cast<uint32 *>(task->tc_SPUpper);
+    auto lower = static_cast<uint32 *>(task->tc_SPLower);
+
+    for (auto ptr = lower; ptr <= upper; ptr++) {
+        if (*ptr != 0 && *ptr != 0xbad1bad3) {
+            logging::Debug("%u bytes left on stack, used %u", (ptr - lower) * 4, (upper - ptr) * 4);
+            return;
+        }
+    }
+}
+
+static void HandleShell(char** argv)
+{
+    ReadToolTypes(argv[0]);
+}
+
+static void HandleWorkbench(WBStartup* startup)
+{
+    WBArg* args = startup->sm_ArgList;
+
+    ReadToolTypes(args->wa_Name);
 }
 
 } // fractalnova
 
-int main(void)
+int main(int argc, char* argv[])
 {
     uint64 frames { 0 };
     uint64 events { 0 };
@@ -73,11 +155,15 @@ int main(void)
 
     using namespace fractalnova;
 
-    ParseArgs();
+    if (argc > 0) {
+        HandleShell(argv);
+    } else {
+        HandleWorkbench(reinterpret_cast<WBStartup*>(argv));
+    }
 
     try {
-        GuiWindow window { static_cast<bool>(params.vsync) };
-        NovaContext context { window, iterations };
+        GuiWindow window { params };
+        NovaContext context { window, params.iterations };
         Timer timer;
 
         const uint64 start = timer.GetTicks();
@@ -140,6 +226,8 @@ int main(void)
 
     //logging::Log("Frames %llu in %.1f second. FPS %.1f", frames, duration, frames / duration);
     //logging::Log("Events checked %llu. EPS %.1f", events, events / duration);
+
+    CheckStack();
 
     return 0;
 }

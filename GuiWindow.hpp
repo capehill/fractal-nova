@@ -4,7 +4,6 @@
 #include "EFractal.hpp"
 #include "EPalette.hpp"
 #include "Logger.hpp"
-#include "EMenu.hpp"
 
 #include <proto/intuition.h>
 
@@ -17,11 +16,29 @@ enum class EFlag
 };
 
 class BackBuffer;
+enum class EMenu;
+
+struct Resolution
+{
+    uint32 width { 640 };
+    uint32 height { 480 };
+};
+
+struct Params
+{
+    bool vsync { false };
+    bool fullscreen { false };
+    bool lazyClear { false };
+    int iterations { 100 };
+
+    Resolution windowSize;
+    Resolution screenSize;
+};
 
 class GuiWindow
 {
 public:
-    GuiWindow(bool vsync);
+    GuiWindow(const Params& params);
     ~GuiWindow();
 
     bool Run();
@@ -84,8 +101,6 @@ private:
 
     EFractal fractal { EFractal::Mandelbrot };
     EPalette palette { EPalette::Rainbow };
-
-    logging::ELevel logLevel { logging::ELevel::Info };
 
     uint32 flags { 0 };
 };

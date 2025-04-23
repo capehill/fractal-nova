@@ -1,6 +1,7 @@
 #include "GuiWindow.hpp"
 #include "Logger.hpp"
 #include "BackBuffer.hpp"
+#include "EMenu.hpp"
 
 #include <proto/exec.h>
 #include <proto/intuition.h>
@@ -58,35 +59,35 @@ Object* GuiWindow::CreateMenu()
                     MA_Type, T_ITEM,
                     MA_Label, "Detail",
                     MA_ID, EMenu::LogDetail,
-                    MA_Selected, logLevel == logging::ELevel::Detail,
+                    MA_Selected, logging::Level() == logging::ELevel::Detail,
                     MA_MX, ~(1 << 0),
                     TAG_DONE),
                 MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                     MA_Type, T_ITEM,
                     MA_Label, "Debug",
                     MA_ID, EMenu::LogDebug,
-                    MA_Selected, logLevel == logging::ELevel::Debug,
+                    MA_Selected, logging::Level() == logging::ELevel::Debug,
                     MA_MX, ~(1 << 1),
                     TAG_DONE),
                 MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                     MA_Type, T_ITEM,
                     MA_Label, "Info",
                     MA_ID, EMenu::LogInfo,
-                    MA_Selected, logLevel == logging::ELevel::Info,
+                    MA_Selected, logging::Level() == logging::ELevel::Info,
                     MA_MX, ~(1 << 2),
                     TAG_DONE),
                 MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                     MA_Type, T_ITEM,
                     MA_Label, "Warning",
                     MA_ID, EMenu::LogWarning,
-                    MA_Selected, logLevel == logging::ELevel::Warning,
+                    MA_Selected, logging::Level() == logging::ELevel::Warning,
                     MA_MX, ~(1 << 3),
                     TAG_DONE),
                 MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                     MA_Type, T_ITEM,
                     MA_Label, "Error",
                     MA_ID, EMenu::LogError,
-                    MA_Selected, logLevel == logging::ELevel::Error,
+                    MA_Selected, logging::Level() == logging::ELevel::Error,
                     MA_MX, ~(1 << 4),
                     TAG_DONE),
                 TAG_DONE),
@@ -244,8 +245,10 @@ uint32 GuiWindow::IdcmpHook(Hook* hook, APTR window __attribute__((unused)), Int
     return 0;
 }
 
-GuiWindow::GuiWindow(const bool vsync):
-    vsync(vsync)
+GuiWindow::GuiWindow(const Params& params):
+    vsync(params.vsync),
+    width(params.windowSize.width),
+    height(params.windowSize.height)
 {
     static Hook idcmpHook {
         { 0, 0 },
@@ -731,6 +734,8 @@ void GuiWindow::ToggleVSync()
 
 void GuiWindow::ToggleLogLevel(const EMenu id)
 {
+    auto logLevel = logging::ELevel::Info;
+
     switch (id) {
         case EMenu::LogDetail:
             logLevel = logging::ELevel::Detail;
