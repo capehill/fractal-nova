@@ -589,7 +589,7 @@ bool GuiWindow::HandleRawKey()
 		return 0;
 	}
 
-    const auto code = ie->ie_Code & 0x7F;
+    const auto code = ie->ie_Code;
 
     bool running { true };
 
