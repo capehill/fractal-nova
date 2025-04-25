@@ -19,6 +19,7 @@ public:
     void SetPosition(const Vertex& pos);
     void SetComplex(const Vertex& complex);
     void SetZoom(float z);
+    void SetIterations(int iterations);
     void Reset();
 
     void UpdateVertexDBO() const;

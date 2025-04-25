@@ -50,6 +50,7 @@ public:
     void ClearPosition();
 
     float GetZoom() const;
+    int GetIterations() const { return iterations; }
 
     uint32 Width() const { return windowSize.width; }
     uint32 Height() const { return windowSize.height; }
@@ -108,6 +109,7 @@ private:
     EPalette palette { EPalette::Rainbow };
 
     uint32 flags { 0 };
+    int iterations { 100 };
 };
 
 } // fractalnova

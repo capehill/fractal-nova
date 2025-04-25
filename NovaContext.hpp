@@ -33,6 +33,7 @@ public:
 
     void SetPosition(const Vertex& position);
     void SetZoom(float zoom);
+    void SetIterations(int iterations);
     void Reset();
 
     void UseProgram(EFractal fractal);
@@ -54,7 +55,7 @@ private:
     uint32 width { 0 };
     uint32 height { 0 };
 
-    const int iterations;
+    int iterations { 100 };
 };
 
 } // fractalnova

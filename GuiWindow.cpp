@@ -68,6 +68,80 @@ Object* GuiWindow::CreateMenu()
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
+                MA_Label, "Iterations",
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "100",
+                    MA_ID, EMenu::Iterations100,
+                    MA_Selected, iterations == 100,
+                    MA_MX, ~(1 << 0),
+                    TAG_DONE),
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "200",
+                    MA_ID, EMenu::Iterations200,
+                    MA_Selected, iterations == 200,
+                    MA_MX, ~(1 << 1),
+                    TAG_DONE),
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "300",
+                    MA_ID, EMenu::Iterations300,
+                    MA_Selected, iterations == 300,
+                    MA_MX, ~(1 << 2),
+                    TAG_DONE),
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "400",
+                    MA_ID, EMenu::Iterations400,
+                    MA_Selected, iterations == 400,
+                    MA_MX, ~(1 << 3),
+                    TAG_DONE),
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "500",
+                    MA_ID, EMenu::Iterations500,
+                    MA_Selected, iterations == 500,
+                    MA_MX, ~(1 << 4),
+                    TAG_DONE),
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "600",
+                    MA_ID, EMenu::Iterations600,
+                    MA_Selected, iterations == 600,
+                    MA_MX, ~(1 << 5),
+                    TAG_DONE),
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "700",
+                    MA_ID, EMenu::Iterations700,
+                    MA_Selected, iterations == 700,
+                    MA_MX, ~(1 << 6),
+                    TAG_DONE),
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "800",
+                    MA_ID, EMenu::Iterations800,
+                    MA_Selected, iterations == 800,
+                    MA_MX, ~(1 << 7),
+                    TAG_DONE),
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "900",
+                    MA_ID, EMenu::Iterations900,
+                    MA_Selected, iterations == 900,
+                    MA_MX, ~(1 << 8),
+                    TAG_DONE),
+                MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                    MA_Type, T_ITEM,
+                    MA_Label, "1000",
+                    MA_ID, EMenu::Iterations1000,
+                    MA_Selected, iterations == 1000,
+                    MA_MX, ~(1 << 9),
+                    TAG_DONE),
+                TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
+                MA_Type, T_ITEM,
                 MA_Label, "Log level",
                 MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                     MA_Type, T_ITEM,
@@ -369,7 +443,8 @@ GuiWindow::GuiWindow(const Params& params):
     vsync(params.vsync),
     fullscreen(params.fullscreen),
     screenSize(params.screenSize),
-    windowSize(params.windowSize)
+    windowSize(params.windowSize),
+    iterations(params.iterations)
 {
     static Hook idcmpHook {
         { 0, 0 },
@@ -568,6 +643,37 @@ bool GuiWindow::HandleMenuPick()
 
             case EMenu::VSync:
                 ToggleVSync();
+                break;
+
+            case EMenu::Iterations100:
+                iterations = 100;
+                break;
+            case EMenu::Iterations200:
+                iterations = 200;
+                break;
+            case EMenu::Iterations300:
+                iterations = 300;
+                break;
+            case EMenu::Iterations400:
+                iterations = 400;
+                break;
+            case EMenu::Iterations500:
+                iterations = 500;
+                break;
+            case EMenu::Iterations600:
+                iterations = 600;
+                break;
+            case EMenu::Iterations700:
+                iterations = 700;
+                break;
+            case EMenu::Iterations800:
+                iterations = 800;
+                break;
+            case EMenu::Iterations900:
+                iterations = 900;
+                break;
+            case EMenu::Iterations1000:
+                iterations = 1000;
                 break;
 
             case EMenu::LogDetail:

@@ -168,6 +168,12 @@ void NovaContext::SetZoom(const float z)
     program->SetZoom(z);
 }
 
+void NovaContext::SetIterations(const int iter)
+{
+    iterations = iter;
+    program->SetIterations(iterations);
+}
+
 void NovaContext::Reset()
 {
     program->Reset();

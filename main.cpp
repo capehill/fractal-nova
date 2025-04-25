@@ -18,7 +18,7 @@
 namespace fractalnova {
 
 static constexpr double eventPeriod { 1.0 / 60.0 };
-static constexpr int minIter { 20 };
+static constexpr int minIter { 100 };
 static constexpr int maxIter { 1000 };
 
 static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 1.1 (13.3.2025)" };
@@ -194,6 +194,7 @@ int main(int argc, char* argv[])
                 context.UsePalette(window.GetPalette());
                 context.SetZoom(window.GetZoom());
                 context.SetPosition(window.GetPosition());
+                context.SetIterations(window.GetIterations());
             }
 
             const double passed = timer.TicksToSeconds(now - fpsTicks);

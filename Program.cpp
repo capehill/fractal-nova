@@ -65,6 +65,11 @@ void Program::SetZoom(const float z)
     zoom = z;
 }
 
+void Program::SetIterations(const int iter)
+{
+    iterations = iter;
+}
+
 void Program::Reset()
 {
     oldPosition = { 0.0f, 0.0f };
