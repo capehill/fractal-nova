@@ -90,6 +90,7 @@ private:
     static uint32 IdcmpHook(Hook* hook, APTR window, IntuiMessage* msg);
 
     Object* windowObject { nullptr };
+    Object* menuObject { nullptr };
     Window* window { nullptr };
     MsgPort* appPort { nullptr };
     Screen* screen { nullptr };

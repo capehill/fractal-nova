@@ -26,7 +26,7 @@ static const char* const menuClass { "menuclass" };
 
 Object* GuiWindow::CreateMenu()
 {
-    Object* menu = IIntuition->NewObject(nullptr, menuClass,
+    menuObject = IIntuition->NewObject(nullptr, menuClass,
         MA_Type, T_ROOT,
         // Main
         MA_AddChild, IIntuition->NewObject(nullptr, menuClass,
@@ -304,11 +304,11 @@ Object* GuiWindow::CreateMenu()
         // The end
         TAG_DONE);
 
-    if (!menu) {
+    if (!menuObject) {
         logging::Error("Failed to create menus");
     }
 
-    return menu;
+    return menuObject;
 }
 
 uint32 GuiWindow::IdcmpHook(Hook* hook, APTR window __attribute__((unused)), IntuiMessage* msg)
@@ -531,6 +531,11 @@ GuiWindow::~GuiWindow()
         IIntuition->DisposeObject(windowObject);
         windowObject = nullptr;
         window = nullptr;
+    }
+
+    if (menuObject) {
+        IIntuition->DisposeObject(menuObject);
+        menuObject = nullptr;
     }
 
     if (screen) {
