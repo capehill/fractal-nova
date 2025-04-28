@@ -20,7 +20,7 @@ std::string NovaObject::ErrorToString(const W3DN_ErrorCode errCode) const
 void NovaObject::ThrowOnError(const W3DN_ErrorCode errCode, const std::string& message) const
 {
     if (errCode != W3DNEC_SUCCESS) {
-        throw std::runtime_error(message + ": " + ErrorToString(errCode));
+        throw std::runtime_error(message + ". W3DN error: " + ErrorToString(errCode));
     }
 }
 

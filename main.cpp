@@ -222,7 +222,7 @@ int main(int argc, char* argv[])
         //duration = timer.TicksToSeconds(finish - start);
 
     } catch (const std::exception& e) {
-        logging::Error("Exception %s", e.what());
+        logging::Error("Exception: %s", e.what());
     }
 
     //logging::Log("Frames %llu in %.1f second. FPS %.1f", frames, duration, frames / duration);
