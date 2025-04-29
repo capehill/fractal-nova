@@ -2,6 +2,7 @@
 #include "NovaContext.hpp"
 #include "Timer.hpp"
 #include "Logger.hpp"
+#include "Version.hpp"
 
 #include <proto/dos.h>
 #include <proto/exec.h>
@@ -21,7 +22,8 @@ static constexpr double eventPeriod { 1.0 / 60.0 };
 static constexpr int minIter { 100 };
 static constexpr int maxIter { 1000 };
 
-static const char* const version __attribute__((used)) { "$VER: Fractal-Nova 1.1 (13.3.2025)" };
+static const char* const version __attribute__((used)) { "$VER: "
+    NAME_STRING " " VERSION_STRING " " DATE_STRING };
 
 static Params params;
 

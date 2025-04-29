@@ -77,6 +77,8 @@ private:
     void HandleIconify();
     void HandleUniconify();
 
+    void ShowAboutWindow();
+
     void ResetView();
 
     float GetZoomStep() const;

@@ -2,6 +2,7 @@
 #include "Logger.hpp"
 #include "BackBuffer.hpp"
 #include "EMenu.hpp"
+#include "AboutWindow.hpp"
 
 #include <proto/dos.h>
 #include <proto/exec.h>
@@ -36,7 +37,6 @@ Object* GuiWindow::CreateMenu()
                 MA_Type, T_ITEM,
                 MA_Label, "?|About",
                 MA_ID, EMenu::About,
-                MA_Disabled, TRUE,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, menuClass,
                 MA_Type, T_ITEM,
@@ -556,7 +556,7 @@ bool GuiWindow::Run()
     position = { 0.0f, 0.0f };
     flags = 0;
 
-     if (!window) {
+    if (!window) {
         // When iconified, wait for some event to save CPU
         uint32 winSig = 0;
         if (!IIntuition->GetAttr(WINDOW_SigMask, windowObject, &winSig)) {
@@ -633,6 +633,10 @@ bool GuiWindow::HandleMenuPick()
 
     while ((id = static_cast<EMenu>(IIntuition->IDoMethod(menu, MM_NEXTSELECT, 0, id))) != EMenu::NoMenuId) {
         switch (id) {
+            case EMenu::About:
+                ShowAboutWindow();
+                break;
+
             case EMenu::Iconify:
                 HandleIconify();
                 break;
@@ -997,6 +1001,11 @@ void GuiWindow::ToggleLogLevel(const EMenu id)
     }
 
     logging::SetLevel(logLevel);
+}
+
+void GuiWindow::ShowAboutWindow()
+{
+    AboutWindow aw { window };
 }
 
 } // fractalnova
