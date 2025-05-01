@@ -15,8 +15,6 @@
 
 #include <stdexcept>
 
-// TODO: display coordinate/zoom on window title?
-
 namespace fractalnova {
 
 struct Warp3DNovaIFace* IW3DNova;
