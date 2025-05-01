@@ -1,10 +1,10 @@
 # Fractal Nova
 
-Real-time Mandelbrot fractal, calculated by the GPU.
+Real-time Mandelbrot / Julia fractal, calculated by the GPU.
 
 ## Requirements:
 
-Warp3D Nova library v. 1.68.
+Warp3D Nova library version 54.
 
 ## Controls
 
@@ -15,14 +15,33 @@ Warp3D Nova library v. 1.68.
 - Press SPACE bar to reset display.
 - Press ESC key to quit.
 
-## Command-line parameters
+## Icon tooltypes
 
-- ITER/N (20-1000): iteration depth.
-- VSYNC/S: limit the drawing speed.
-- LAZYCLEAR/S: clear backbuffer only once per second. Clearing is only necessary when user pans outside of the fractal area.
-- VERBOSE/S: enable console logging.
+VSYNC: limit the drawing speed.
+FULLSCREEN: start with fullscreen mode.
+LAZYCLEAR: don't clear backbuffer every frame.
+ITERATIONS: iteration depth. Range 100-1000.
+LOGLEVEL: for debugging.
+SCREENMODE: preferred fullscreen mode.
+WINDOWSIZE: preferred window size.
 
-## TODO
+## Version 1.1 changes
 
+- Add fullscreen mode
+- Add icon tooltypes
+- Add about requester
+- Add iconification
+- Add Control-C handling
+- Remove command-line parameters
+- Start using window.class
+- Improve RMB menus
+- Improve colour mapping
+- Improve logger
+- Improve some log messages
+- Fix texture sampler resource leak
+- Fix texture coordinate setup
+- Fix some compiler warnings
+- Fix some CppCheck issues
+- Refactor code
 
 
