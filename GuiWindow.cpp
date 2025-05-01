@@ -66,6 +66,13 @@ Object* GuiWindow::CreateMenu()
                 MA_Toggle, TRUE,
                 MA_Selected, vsync,
                 TAG_DONE),
+            MA_AddChild, IIntuition->NewObject(nullptr, menuClass,
+                MA_Type, T_ITEM,
+                MA_Label, "Fullscreen",
+                MA_ID, EMenu::ToggleFullscreen,
+                MA_Toggle, TRUE,
+                MA_Selected, fullscreen,
+                TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, "menuclass",
                 MA_Type, T_ITEM,
                 MA_Label, "Iterations",
@@ -439,12 +446,7 @@ void GuiWindow::CreateScreen()
     }
 }
 
-GuiWindow::GuiWindow(const Params& params):
-    vsync(params.vsync),
-    fullscreen(params.fullscreen),
-    screenSize(params.screenSize),
-    windowSize(params.windowSize),
-    iterations(params.iterations)
+void GuiWindow::CreateWindow()
 {
     static Hook idcmpHook {
         { 0, 0 },
@@ -453,18 +455,9 @@ GuiWindow::GuiWindow(const Params& params):
         this
     };
 
-    logging::Debug("Create GuiWindow");
-
-    appPort = static_cast<MsgPort *>(IExec->AllocSysObjectTags(ASOT_PORT, TAG_DONE));
-
-    if (!appPort) {
-        throw std::runtime_error("Failed to create app port");
-    }
-
     Screen* pubScreen = nullptr;
 
     // TODO: FPS counter in fullscreen?
-    // TODO: toggle fullscreen <-> window?
     if (fullscreen) {
         CreateScreen();
     }
@@ -473,8 +466,6 @@ GuiWindow::GuiWindow(const Params& params):
         windowSize.width = screen->Width;
         windowSize.height = screen->Height;
     } else {
-        //windowSize.width = innerWidth ? innerWidth : windowSize.width;
-        //windowSize.height = innerHeight ? innerHeight : windowSize.height;
         pubScreen = IIntuition->LockPubScreen(nullptr);
     }
 
@@ -525,7 +516,7 @@ GuiWindow::GuiWindow(const Params& params):
     }
 }
 
-GuiWindow::~GuiWindow()
+void GuiWindow::DestroyWindow()
 {
     if (windowObject) {
         IIntuition->DisposeObject(windowObject);
@@ -542,6 +533,29 @@ GuiWindow::~GuiWindow()
         IIntuition->CloseScreen(screen);
         screen = nullptr;
     }
+}
+
+GuiWindow::GuiWindow(const Params& params):
+    vsync(params.vsync),
+    fullscreen(params.fullscreen),
+    screenSize(params.screenSize),
+    windowSize(params.windowSize),
+    iterations(params.iterations)
+{
+    logging::Debug("Create GuiWindow");
+
+    appPort = static_cast<MsgPort *>(IExec->AllocSysObjectTags(ASOT_PORT, TAG_DONE));
+
+    if (!appPort) {
+        throw std::runtime_error("Failed to create app port");
+    }
+
+    CreateWindow();
+}
+
+GuiWindow::~GuiWindow()
+{
+    DestroyWindow();
 
     if (appPort) {
         IExec->FreeSysObject(ASOT_PORT, appPort);
@@ -604,6 +618,11 @@ bool GuiWindow::Run()
         }
     }
 
+    if (Flagged(EFlag::ToggleFullscreen)) {
+        DestroyWindow();
+        CreateWindow();
+    }
+
     if (IExec->SetSignal(0, SIGBREAKF_CTRL_C) & SIGBREAKF_CTRL_C) {
         logging::Debug("Control-C");
         running = false;
@@ -652,6 +671,10 @@ bool GuiWindow::HandleMenuPick()
 
             case EMenu::VSync:
                 ToggleVSync();
+                break;
+
+            case EMenu::ToggleFullscreen:
+                ToggleFullscreen();
                 break;
 
             case EMenu::Iterations100:
@@ -963,6 +986,22 @@ void GuiWindow::ToggleVSync()
     vsync = !vsync;
 
     ToggleMenuItem(EMenu::VSync, vsync);
+}
+
+void GuiWindow::ToggleFullscreen()
+{
+    fullscreen = !fullscreen;
+
+    if (fullscreen) {
+        oldWindowSize = windowSize;
+    } else {
+        windowSize = oldWindowSize;
+    }
+
+    ToggleMenuItem(EMenu::ToggleFullscreen, fullscreen);
+
+    Set(EFlag::Resize);
+    Set(EFlag::ToggleFullscreen);
 }
 
 void GuiWindow::ToggleLogLevel(const EMenu id)

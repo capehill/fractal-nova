@@ -9,10 +9,12 @@
 
 namespace fractalnova {
 
+// TODO: bitset
 enum class EFlag
 {
     Resize = 1,
-    Reset = 2
+    Reset = 2,
+    ToggleFullscreen = 4
 };
 
 class BackBuffer;
@@ -66,6 +68,8 @@ public:
 
 private:
     void CreateScreen();
+    void CreateWindow();
+    void DestroyWindow();
     Object* CreateMenu();
 
     void HandleExtendedMouse(const struct IntuiWheelData* data);
@@ -88,6 +92,7 @@ private:
     void ToggleMenuItem(const EMenu id, bool state);
     void ToggleVSync();
     void ToggleLogLevel(const EMenu id);
+    void ToggleFullscreen();
 
     static uint32 IdcmpHook(Hook* hook, APTR window, IntuiMessage* msg);
 
@@ -107,6 +112,7 @@ private:
 
     Resolution screenSize {};
     Resolution windowSize {};
+    Resolution oldWindowSize {};
 
     EFractal fractal { EFractal::Mandelbrot };
     EPalette palette { EPalette::Rainbow };

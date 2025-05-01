@@ -12,6 +12,7 @@ enum class EMenu {
     // Control
     ResetView,
     VSync,
+    ToggleFullscreen,
     LogDetail,
     LogDebug,
     LogInfo,
