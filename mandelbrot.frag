@@ -174,8 +174,9 @@ void main()
         iteration++;
     }
 
-    fragColor = texture(texSampler, vec2(float(iteration) / float(u_iterations), 0.0));
-    //fragColor = texture(texSampler, vec2(float(iteration) / 100.0, 0.0));
+    float i = float(iteration) + 1.0 - log(log(length(vec2(x, y)))) / log(2.0);
+    fragColor = texture(texSampler, vec2(i / float(u_iterations), 0.0));
 }
 
 #endif
+
