@@ -25,7 +25,7 @@ NovaContext::NovaContext(const GuiWindow& window, const int iterations)
 {
     logging::Debug("Create NovaContext");
 
-    NovaBase = IExec->OpenLibrary("Warp3DNova.library", 1);
+    NovaBase = IExec->OpenLibrary("Warp3DNova.library", 54);
 
     if (NovaBase) {
         IW3DNova = reinterpret_cast<struct Warp3DNovaIFace *>(IExec->GetInterface(NovaBase, "main", 1, nullptr));
