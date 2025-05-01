@@ -7,14 +7,16 @@
 
 #include <proto/intuition.h>
 
+#include <bitset>
+
 namespace fractalnova {
 
-// TODO: bitset
 enum class EFlag
 {
-    Resize = 1,
-    Reset = 2,
-    ToggleFullscreen = 4
+    Resize,
+    Reset,
+    ToggleFullscreen,
+    Last
 };
 
 class BackBuffer;
@@ -71,6 +73,7 @@ private:
     void CreateWindow();
     void DestroyWindow();
     Object* CreateMenu();
+    void SetLimits() const;
 
     void HandleExtendedMouse(const struct IntuiWheelData* data);
     bool HandleMenuPick();
@@ -117,7 +120,7 @@ private:
     EFractal fractal { EFractal::Mandelbrot };
     EPalette palette { EPalette::Rainbow };
 
-    uint32 flags { 0 };
+    std::bitset<static_cast<unsigned>(EFlag::Last)> flags;
     int iterations { 100 };
 };
 

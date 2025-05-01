@@ -461,6 +461,22 @@ void GuiWindow::CreateScreen()
     }
 }
 
+void GuiWindow::SetLimits() const
+{
+    // No idea why, but WA_MinWidth & WA_MinHeight don't seem to work. Shaderjoy
+    // had this same workaround.
+    constexpr int minWidth = 200;
+    constexpr int minHeight = 200;
+
+    const auto minW = minWidth + window->BorderLeft + window->BorderRight;
+    const auto minH = minHeight + window->BorderTop + window->BorderBottom;
+
+    if (!IIntuition->WindowLimits(window, minW, minH, -1, -1)) {
+        logging::Debug("Failed to set window limits (%d, %d) - (max, max)",
+                       minWidth, minHeight);
+    }
+}
+
 void GuiWindow::CreateWindow()
 {
     static Hook idcmpHook {
@@ -494,10 +510,6 @@ void GuiWindow::CreateWindow()
         WA_BackFill, LAYERS_NOBACKFILL,
         WA_InnerWidth, windowSize.width,
         WA_InnerHeight, windowSize.height,
-        WA_MinHeight, 200,
-        WA_MinWidth, 200,
-        WA_MaxHeight, 2048,
-        WA_MaxWidth, 2048,
         WA_Flags, WFLG_REPORTMOUSE | WFLG_NEWLOOKMENUS,
         WA_IDCMP, /*IDCMP_REFRESHWINDOW |*/ IDCMP_NEWSIZE | IDCMP_CLOSEWINDOW | IDCMP_MOUSEBUTTONS | IDCMP_MOUSEMOVE |
                   IDCMP_DELTAMOVE | IDCMP_EXTENDEDMOUSE | IDCMP_RAWKEY | IDCMP_MENUPICK,
@@ -529,6 +541,8 @@ void GuiWindow::CreateWindow()
     if (!window) {
         throw std::runtime_error("Failed to open window");
     }
+
+    SetLimits();
 }
 
 void GuiWindow::DestroyWindow()
@@ -583,7 +597,7 @@ bool GuiWindow::Run()
     bool running { true };
 
     position = { 0.0f, 0.0f };
-    flags = 0;
+    flags.reset();
 
     if (!window) {
         // When iconified, wait for some event to save CPU
@@ -955,17 +969,17 @@ void GuiWindow::ResetView()
 
 bool GuiWindow::Flagged(const EFlag flag) const
 {
-    return flags & static_cast<uint32>(flag);
+    return flags.test(static_cast<std::size_t>(flag));
 }
 
 void GuiWindow::Set(const EFlag flag)
 {
-    flags |= static_cast<uint32>(flag);
+    flags.set(static_cast<std::size_t>(flag));
 }
 
 void GuiWindow::Clear(const EFlag flag)
 {
-    flags &= ~static_cast<uint32>(flag);
+    flags.reset(static_cast<std::size_t>(flag));
 }
 
 void GuiWindow::Draw(const BackBuffer* backBuffer) const
