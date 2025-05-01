@@ -3,7 +3,6 @@
 
 namespace fractalnova {
 
-static constexpr bool textureFiltering { false };
 static constexpr uint32 textureUnit { 0 };
 
 Texture::Texture(W3DN_Context* context, const std::vector<Color>& colors): NovaObject(context)
@@ -33,11 +32,9 @@ Texture::Texture(W3DN_Context* context, const std::vector<Color>& colors): NovaO
 
     ThrowOnError(errCode, "Failed to create texture sampler");
 
-    errCode = context->TSSetParametersTags(sampler,
-        W3DN_TEXTURE_MIN_FILTER, textureFiltering ? W3DN_LINEAR : W3DN_NEAREST,
-        TAG_DONE);
+    constexpr bool textureFiltering { true };
 
-    ThrowOnError(errCode, "Failed to set texture sampler parameters");
+    SetFiltering(textureFiltering);
 
     context->BindTexture(defaultRSO, textureUnit, texture, sampler);
 
@@ -59,6 +56,16 @@ Texture::~Texture()
         context->DestroyTexSampler(sampler);
         sampler = nullptr;
     }
+}
+
+void Texture::SetFiltering(const bool textureFiltering)
+{
+    auto errCode = context->TSSetParametersTags(sampler,
+        W3DN_TEXTURE_MIN_FILTER, textureFiltering ? W3DN_LINEAR : W3DN_NEAREST,
+        W3DN_TEXTURE_MAG_FILTER, textureFiltering ? W3DN_LINEAR : W3DN_NEAREST,
+        TAG_DONE);
+
+    ThrowOnError(errCode, "Failed to set texture sampler parameters");
 }
 
 } // fractalnova
