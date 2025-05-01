@@ -4,7 +4,6 @@
 #include "Vertex.hpp"
 
 #include <cmath> // M_PI
-#include <stdexcept>
 
 namespace {
     static constexpr float toRadians { static_cast<float>(M_PI) / 180.0f };
@@ -23,10 +22,6 @@ VertexShader::VertexShader(W3DN_Context* context, const std::string& fileName): 
 {
     logging::Debug("Create VertexShader %s", fileName.c_str());
     dbo = std::make_unique<DataBuffer>(context, W3DNST_VERTEX, sizeof(VertexShaderData), shader);
-}
-
-VertexShader::~VertexShader()
-{
 }
 
 void VertexShader::UpdateDBO(const float zoom, Vertex& oldPosition, const Vertex& position) const
@@ -64,12 +59,6 @@ void VertexShader::UpdateDBO(const float zoom, Vertex& oldPosition, const Vertex
     errCode = context->BufferUnlock(lock, writeOffset, sizeof(VertexShaderData));
 
     ThrowOnError(errCode, "Failed to unlock data buffer object (vertex)");
-
-    //angle += 1.0f;
-
-    if (angle >= 360.0f) {
-        angle = 0.0f;
-    }
 }
 
 } // fractalnova

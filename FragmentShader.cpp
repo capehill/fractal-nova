@@ -3,8 +3,6 @@
 #include "Logger.hpp"
 #include "Vertex.hpp"
 
-#include <stdexcept>
-
 namespace fractalnova {
 
 struct FragmentShaderData {
@@ -16,10 +14,6 @@ FragmentShader::FragmentShader(W3DN_Context* context, const std::string& fileNam
 {
     logging::Debug("Create FragmentShader %s", fileName.c_str());
     dbo = std::make_unique<DataBuffer>(context, W3DNST_FRAGMENT, sizeof(FragmentShaderData), shader);
-}
-
-FragmentShader::~FragmentShader()
-{
 }
 
 void FragmentShader::UpdateDBO(const int iterations, const Vertex& complex) const
@@ -43,7 +37,7 @@ void FragmentShader::UpdateDBO(const int iterations, const Vertex& complex) cons
     auto data = reinterpret_cast<FragmentShaderData *>(lock->buffer);
 
     data->iterations = iterations;
-    data->complex = complex; // TODO: only Julia uses this
+    data->complex = complex; // NOTE: only Julia uses this
 
     constexpr uint64 writeOffset = 0;
 
@@ -51,7 +45,6 @@ void FragmentShader::UpdateDBO(const int iterations, const Vertex& complex) cons
 
     ThrowOnError(errCode, "Failed to unlock fragment shader DBO");
 }
-
 
 } // fractalnova
 

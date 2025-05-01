@@ -55,7 +55,7 @@ public:
     uint32 Width() const { return windowSize.width; }
     uint32 Height() const { return windowSize.height; }
 
-    EFractal GetFractal() const { return fractal; };
+    EFractal GetFractal() const { return fractal; }
     EPalette GetPalette() const { return palette; }
 
     bool Flagged(EFlag flag) const;

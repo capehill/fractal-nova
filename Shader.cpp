@@ -2,8 +2,6 @@
 #include "DataBuffer.hpp"
 #include "Logger.hpp"
 
-#include <stdexcept>
-
 namespace fractalnova {
 
 namespace {

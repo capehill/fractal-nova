@@ -10,7 +10,7 @@ class FragmentShader: public Shader
 {
 public:
     FragmentShader(W3DN_Context* context, const std::string& fileName);
-    ~FragmentShader();
+    ~FragmentShader() = default;
 
     void UpdateDBO(int iterations, const Vertex& complex) const;
 
