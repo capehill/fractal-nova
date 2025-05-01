@@ -35,7 +35,7 @@ Object* GuiWindow::CreateMenu()
             MA_Label, "Main",
             MA_AddChild, IIntuition->NewObject(nullptr, menuClass,
                 MA_Type, T_ITEM,
-                MA_Label, "?|About",
+                MA_Label, "?|About...",
                 MA_ID, EMenu::About,
                 TAG_DONE),
             MA_AddChild, IIntuition->NewObject(nullptr, menuClass,
