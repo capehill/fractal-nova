@@ -873,19 +873,9 @@ void GuiWindow::SetTitle(const char* title)
     }
 }
 
-Vertex GuiWindow::GetPosition() const
-{
-    return position;
-}
-
 void GuiWindow::ClearPosition()
 {
     position = { 0.0f, 0.0f };
-}
-
-float GuiWindow::GetZoom() const
-{
-    return zoom;
 }
 
 float GuiWindow::GetZoomStep() const

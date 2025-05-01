@@ -46,10 +46,10 @@ public:
 
     void SetTitle(const char* title);
 
-    Vertex GetPosition() const;
+    Vertex GetPosition() const { return position; }
     void ClearPosition();
 
-    float GetZoom() const;
+    float GetZoom() const { return zoom; }
     int GetIterations() const { return iterations; }
 
     uint32 Width() const { return windowSize.width; }
