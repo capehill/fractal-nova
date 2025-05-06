@@ -1,4 +1,4 @@
-NAME=fractal-nova
+NAME=FractalNova
 
 CFLAGS=-Wall -Wextra -Wpedantic -Wconversion -gstabs -O3 #-Werror
 LDFLAGS= -athread=single -lauto

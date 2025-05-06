@@ -3,6 +3,7 @@
 #include "BackBuffer.hpp"
 #include "EMenu.hpp"
 #include "AboutWindow.hpp"
+#include "Version.hpp"
 
 #include <proto/dos.h>
 #include <proto/exec.h>
@@ -22,7 +23,7 @@
 
 namespace fractalnova {
 
-static const char* const name { "Fractal Nova" };
+static const char* const name { NAME_STRING };
 static const char* const menuClass { "menuclass" };
 
 static constexpr uint32 Mx(const int index)
