@@ -50,4 +50,4 @@ enum class EMenu {
     BlackAndWhiteRev
 };
 
-} // factalnova
+} // fractalnova
