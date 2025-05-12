@@ -1,19 +1,16 @@
-NAME=FractalNova
+NAME = FractalNova
 
-CFLAGS=-Wall -Wextra -Wpedantic -Wconversion -gstabs -O3 #-Werror
-LDFLAGS= -athread=single -lauto
+CFLAGS = -Wall -Wextra -Wpedantic -Wconversion -Werror -gstabs -O3
+LDFLAGS = -athread=single -lauto
 
-SHADERS= \
-shaders/simple.vert.spv \
-shaders/simple.frag.spv \
-shaders/mandelbrot.vert.spv \
-shaders/mandelbrot.frag.spv \
-shaders/julia.vert.spv \
-shaders/julia.frag.spv
+SHADERS = shaders/mandelbrot.vert.spv \
+          shaders/mandelbrot.frag.spv \
+          shaders/julia.vert.spv \
+          shaders/julia.frag.spv
 
-OBJS=main.o GuiWindow.o NovaContext.o Timer.o Palette.o NovaObject.o Texture.o DataBuffer.o \
-     Shader.o VertexBuffer.o Program.o BackBuffer.o Logger.o VertexShader.o FragmentShader.o \
-     Buffer.o AboutWindow.o
+OBJS = main.o GuiWindow.o NovaContext.o Timer.o Palette.o NovaObject.o Texture.o DataBuffer.o \
+       Shader.o VertexBuffer.o Program.o BackBuffer.o Logger.o VertexShader.o FragmentShader.o \
+       Buffer.o AboutWindow.o
 
 DEPS = $(OBJS:.o=.d) 
 
