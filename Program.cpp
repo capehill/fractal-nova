@@ -42,7 +42,7 @@ Program::~Program()
 
 void Program::UpdateVertexDBO() const
 {
-    vertexShader->UpdateDBO(zoom, oldPosition, position);
+    oldPosition = vertexShader->UpdateDBO(zoom, oldPosition, position);
 }
 
 void Program::UpdateFragmentDBO() const

@@ -12,7 +12,7 @@ public:
     VertexShader(W3DN_Context* context, const std::string& fileName);
     ~VertexShader() = default;
 
-    void UpdateDBO(float zoom, Vertex& oldPosition, const Vertex& position) const;
+    Vertex UpdateDBO(float zoom, const Vertex& oldPosition, const Vertex& position) const;
 
 private:
 };

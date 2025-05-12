@@ -7,6 +7,8 @@
 
 namespace {
     static constexpr float toRadians { static_cast<float>(M_PI) / 180.0f };
+    static constexpr float angle = 0.0f;
+    static constexpr float angleInRadians = angle * toRadians;
 }
 
 namespace fractalnova {
@@ -24,17 +26,15 @@ VertexShader::VertexShader(W3DN_Context* context, const std::string& fileName): 
     dbo = std::make_unique<DataBuffer>(context, W3DNST_VERTEX, sizeof(VertexShaderData), shader);
 }
 
-void VertexShader::UpdateDBO(const float zoom, Vertex& oldPosition, const Vertex& position) const
+Vertex VertexShader::UpdateDBO(const float zoom, const Vertex& oldPosition, const Vertex& position) const
 {
     W3DN_ErrorCode errCode;
-
-    static float angle = 0.0f;
 
     constexpr uint64 readOffset = 0;
     constexpr uint64 readSize = 0;
 
     logging::Detail("Update vertex shader DBO: angle %f, zoom %f, point { %f, %f }",
-                    angle * toRadians,
+                    angleInRadians,
                     zoom,
                     position.x + oldPosition.x,
                     position.y + oldPosition.y);
@@ -47,18 +47,18 @@ void VertexShader::UpdateDBO(const float zoom, Vertex& oldPosition, const Vertex
 
     auto data = reinterpret_cast<VertexShaderData *>(lock->buffer);
 
-    data->angle = angle * toRadians;
+    data->angle = angleInRadians;
     data->zoom = zoom;
     //data->zoom64 = { std::floor(zoom), 1000000000.0f * (zoom - std::floor(zoom)) };
-    data->point = { position.x + oldPosition.x, position.y + oldPosition.y };
-
-    oldPosition = data->point;
+    auto oldPos = data->point = { position.x + oldPosition.x, position.y + oldPosition.y };
 
     constexpr uint64 writeOffset = 0;
 
     errCode = context->BufferUnlock(lock, writeOffset, sizeof(VertexShaderData));
 
     ThrowOnError(errCode, "Failed to unlock data buffer object (vertex)");
+
+    return oldPos;
 }
 
 } // fractalnova
