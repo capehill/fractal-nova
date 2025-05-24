@@ -1,6 +1,6 @@
 NAME = FractalNova
 
-COMPILER = g++
+COMPILER = ppc-amigaos-g++
 CFLAGS = -Wall -Wextra -Wpedantic -Wconversion -Werror -gstabs -O3 -std=c++17
 LDFLAGS = -athread=single -lauto
 
@@ -9,7 +9,7 @@ SHADERS = shaders/mandelbrot.vert.spv \
           shaders/julia.vert.spv \
           shaders/julia.frag.spv
 
-SRCS = $(wildcard *.cpp)
+SRCS = $(wildcard src/*.cpp)
 OBJS = $(SRCS:.cpp=.o)
 
 DEPS = $(OBJS:.o=.d) 
@@ -28,14 +28,14 @@ $(NAME)_debug: $(OBJS) $(SHADERS)
 	$(COMPILER) -MM -MP -MT $(@:.d=.o) -o $@ $< $(CFLAGS)
 
 # Shaders
-shaders/%.vert.spv: %.vert
+shaders/%.vert.spv: glsl/%.vert
 	glslangValidator -G -o $@ $<
 
-shaders/%.frag.spv: %.frag
+shaders/%.frag.spv: glsl/%.frag
 	glslangValidator -G -o $@ $<
 
 clean:
-	delete $(OBJS) $(SHADERS)
+	rm $(OBJS) $(SHADERS)
 
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPS)
