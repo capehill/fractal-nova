@@ -15,7 +15,7 @@ OBJS = $(SRCS:.cpp=.o)
 DEPS = $(OBJS:.o=.d)
 
 $(NAME): $(NAME)_debug
-	strip $(NAME)_debug -o $(NAME)
+	ppc-amigaos-strip $(NAME)_debug -o $(NAME)
 
 $(NAME)_debug: $(OBJS) $(SHADERS)
 	$(COMPILER) -o $@ $(OBJS) $(LDFLAGS)
