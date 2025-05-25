@@ -12,7 +12,7 @@ SHADERS = shaders/mandelbrot.vert.spv \
 SRCS = $(wildcard src/*.cpp)
 OBJS = $(SRCS:.cpp=.o)
 
-DEPS = $(OBJS:.o=.d) 
+DEPS = $(OBJS:.o=.d)
 
 $(NAME): $(NAME)_debug
 	strip $(NAME)_debug -o $(NAME)
@@ -35,8 +35,8 @@ shaders/%.frag.spv: glsl/%.frag
 	glslangValidator -G -o $@ $<
 
 clean:
-	rm $(OBJS) $(SHADERS)
+	rm $(OBJS) $(DEPS) $(SHADERS)
 
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEPS)
-endif   
+endif
