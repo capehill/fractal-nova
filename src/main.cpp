@@ -23,9 +23,9 @@ freely, subject to the following restrictions:
 #include "Timer.hpp"
 #include "Logger.hpp"
 #include "Version.hpp"
+#include "StackChecker.hpp"
 
 #include <proto/dos.h>
-#include <proto/exec.h>
 #include <proto/icon.h>
 
 #include <workbench/startup.h>
@@ -108,6 +108,7 @@ static logging::ELevel ConvertToLogLevel(const char* const str)
     return logging::ELevel::Info;
 }
 
+// TODO
 static void ReadToolTypes(const char* const filename)
 {
     if (filename) {
@@ -138,20 +139,6 @@ static void ReadToolTypes(const char* const filename)
         }
     } else {
         logging::Error("Filename is a nullptr");
-    }
-}
-
-static void CheckStack()
-{
-    auto task = IExec->FindTask(nullptr);
-    auto upper = static_cast<uint32 *>(task->tc_SPUpper);
-    auto lower = static_cast<uint32 *>(task->tc_SPLower);
-
-    for (auto ptr = lower; ptr <= upper; ptr++) {
-        if (*ptr != 0 && *ptr != 0xbad1bad3) {
-            logging::Debug("%u bytes left on stack, used %u", (ptr - lower) * 4, (upper - ptr) * 4);
-            return;
-        }
     }
 }
 
@@ -250,7 +237,7 @@ int main(int argc, char* argv[])
     //logging::Log("Frames %llu in %.1f second. FPS %.1f", frames, duration, frames / duration);
     //logging::Log("Events checked %llu. EPS %.1f", events, events / duration);
 
-    CheckStack();
+    StackChecker sc;
 
     return 0;
 }
