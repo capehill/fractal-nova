@@ -68,18 +68,22 @@ static Resolution ParseResolution(const char* const str)
     return r;
 }
 
-static void ParseScreenMode(const char* const str)
+static Resolution ParseScreenMode(const char* const str)
 {
-    params.screenSize = ParseResolution(str);
+    auto screenSize = ParseResolution(str);
 
-    logging::Debug("SCREENMODE tooltype %lu x %lu", params.screenSize.width, params.screenSize.height);
+    logging::Debug("SCREENMODE tooltype %u x %u", screenSize.width, screenSize.height);
+
+    return screenSize;
 }
 
-static void ParseWindowSize(const char* const str)
+static Resolution ParseWindowSize(const char* const str)
 {
-    params.windowSize = ParseResolution(str);
+    auto windowSize = ParseResolution(str);
 
-    logging::Debug("WINDOWSIZE tooltype %lu x %lu", params.windowSize.width, params.windowSize.height);
+    logging::Debug("WINDOWSIZE tooltype %u x %u", windowSize.width, windowSize.height);
+
+    return windowSize;
 }
 
 static logging::ELevel ConvertToLogLevel(const char* const str)
@@ -108,7 +112,6 @@ static logging::ELevel ConvertToLogLevel(const char* const str)
     return logging::ELevel::Info;
 }
 
-// TODO
 static void ReadToolTypes(const char* const filename)
 {
     if (filename) {
@@ -130,8 +133,8 @@ static void ReadToolTypes(const char* const filename)
                 logging::SetLevel(ConvertToLogLevel(logLevelStr));
             }
 
-            ParseScreenMode(IIcon->FindToolType(object->do_ToolTypes, "SCREENMODE"));
-            ParseWindowSize(IIcon->FindToolType(object->do_ToolTypes, "WINDOWSIZE"));
+            params.screenSize = ParseScreenMode(IIcon->FindToolType(object->do_ToolTypes, "SCREENMODE"));
+            params.windowSize = ParseWindowSize(IIcon->FindToolType(object->do_ToolTypes, "WINDOWSIZE"));
 
             IIcon->FreeDiskObject(object);
         } else {

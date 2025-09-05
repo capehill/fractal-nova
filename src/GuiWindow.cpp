@@ -1015,8 +1015,8 @@ void GuiWindow::Draw(const BackBuffer* backBuffer) const
             IGraphics->WaitTOF();
         }
 
-        const uint32 winw = window->Width - (window->BorderLeft + window->BorderRight);
-        const uint32 winh = window->Height - (window->BorderTop + window->BorderBottom);
+        const std::uint32_t winw = window->Width - (window->BorderLeft + window->BorderRight);
+        const std::uint32_t winh = window->Height - (window->BorderTop + window->BorderBottom);
 
         IGraphics->BltBitMapRastPort(backBuffer->Data(), 0, 0, window->RPort,
             window->BorderLeft,
