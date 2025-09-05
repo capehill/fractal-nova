@@ -24,137 +24,43 @@ freely, subject to the following restrictions:
 #include "Logger.hpp"
 #include "Version.hpp"
 #include "StackChecker.hpp"
+#include "ToolTypeReader.hpp"
 
 #include <proto/dos.h>
-#include <proto/icon.h>
 
 #include <workbench/startup.h>
 
-#include <algorithm>
-#include <array>
 #include <cstdio>
-#include <cstring>
 #include <exception>
 
 namespace fractalnova {
 
 static constexpr double eventPeriod { 1.0 / 60.0 };
-static constexpr int minIter { 100 };
-static constexpr int maxIter { 1000 };
 
 static const char* const version __attribute__((used)) { "$VER: "
     NAME_STRING " " VERSION_STRING " " DATE_STRING };
 
-static Params params;
-
-static Resolution ParseResolution(const char* const str)
+static Params HandleShell(char* argv[])
 {
-    Resolution r;
-
-    if (str) {
-        const std::string temp{ str };
-        const std::size_t pos = temp.find('x');
-        if (pos == std::string::npos) {
-            return r;
-        }
-
-        const std::string w = temp.substr(0, pos);
-        const std::string h = temp.substr(pos + 1);
-
-        r.width = atoi(w.c_str());
-        r.height = atoi(h.c_str());
-    }
-
-    return r;
+    ToolTypeReader reader;
+    return reader.ReadToolTypes(argv[0]);
 }
 
-static Resolution ParseScreenMode(const char* const str)
-{
-    auto screenSize = ParseResolution(str);
-
-    logging::Debug("SCREENMODE tooltype %u x %u", screenSize.width, screenSize.height);
-
-    return screenSize;
-}
-
-static Resolution ParseWindowSize(const char* const str)
-{
-    auto windowSize = ParseResolution(str);
-
-    logging::Debug("WINDOWSIZE tooltype %u x %u", windowSize.width, windowSize.height);
-
-    return windowSize;
-}
-
-static logging::ELevel ConvertToLogLevel(const char* const str)
-{
-    struct LogLevelItem {
-        const char* const name;
-        logging::ELevel level;
-    };
-
-    constexpr std::array<LogLevelItem, 5> items {{
-        { "DETAIL", logging::ELevel::Detail },
-        { "DEBUG", logging::ELevel::Debug },
-        { "INFO", logging::ELevel::Info },
-        { "WARNING", logging::ELevel::Warning },
-        { "ERROR", logging::ELevel::Error }
-    }};
-
-    for (const auto& i: items) {
-        if (strcmp(i.name, str) == 0) {
-            return i.level;
-        }
-    }
-
-    logging::Info("Unknown log level '%s'", str);
-
-    return logging::ELevel::Info;
-}
-
-static void ReadToolTypes(const char* const filename)
-{
-    if (filename) {
-        auto object = IIcon->GetDiskObject(filename);
-
-        if (object) {
-            params.vsync = IIcon->FindToolType(object->do_ToolTypes, "VSYNC");
-            params.fullscreen = IIcon->FindToolType(object->do_ToolTypes, "FULLSCREEN");
-            params.lazyClear = IIcon->FindToolType(object->do_ToolTypes, "LAZYCLEAR");
-
-            const char* const iterationsStr = IIcon->FindToolType(object->do_ToolTypes, "ITERATIONS");
-            if (iterationsStr) {
-                const int iterations = atoi(iterationsStr);
-                params.iterations = std::clamp(iterations, minIter, maxIter);
-            }
-
-            const char* const logLevelStr = IIcon->FindToolType(object->do_ToolTypes, "LOGLEVEL");
-            if (logLevelStr) {
-                logging::SetLevel(ConvertToLogLevel(logLevelStr));
-            }
-
-            params.screenSize = ParseScreenMode(IIcon->FindToolType(object->do_ToolTypes, "SCREENMODE"));
-            params.windowSize = ParseWindowSize(IIcon->FindToolType(object->do_ToolTypes, "WINDOWSIZE"));
-
-            IIcon->FreeDiskObject(object);
-        } else {
-            logging::Error("Failed to open disk object");
-        }
-    } else {
-        logging::Error("Filename is a nullptr");
-    }
-}
-
-static void HandleShell(char** argv)
-{
-    ReadToolTypes(argv[0]);
-}
-
-static void HandleWorkbench(WBStartup* startup)
+static Params HandleWorkbench(WBStartup* startup)
 {
     WBArg* args = startup->sm_ArgList;
 
-    ReadToolTypes(args->wa_Name);
+    ToolTypeReader reader;
+    return reader.ReadToolTypes(args->wa_Name);
+}
+
+static Params ReadParams(int argc, char* argv[])
+{
+    if (argc > 0) {
+        return HandleShell(argv);
+    }
+
+    return HandleWorkbench(reinterpret_cast<WBStartup*>(argv));
 }
 
 } // fractalnova
@@ -167,11 +73,7 @@ int main(int argc, char* argv[])
 
     using namespace fractalnova;
 
-    if (argc > 0) {
-        HandleShell(argv);
-    } else {
-        HandleWorkbench(reinterpret_cast<WBStartup*>(argv));
-    }
+    const Params params = ReadParams(argc, argv);
 
     try {
         GuiWindow window { params };
