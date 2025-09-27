@@ -19,11 +19,11 @@ freely, subject to the following restrictions:
 */
 
 #include "Buffer.hpp"
+#include "Exception.hpp"
 #include "Logger.hpp"
 
 #include <proto/exec.h>
 
-#include <stdexcept>
 #include <cstring>
 
 namespace fractalnova {
@@ -40,7 +40,7 @@ Buffer::Buffer(const size_t size): size(size)
     data = static_cast<char *>(IExec->AllocVecTags(size + 8, AVT_ClearWithValue, 0, TAG_DONE));
 
     if (!data) {
-        throw std::runtime_error("Failed to allocate memory");
+        tools::ThrowException("Failed to allocate memory");
     }
 
     start = data + 4;

@@ -18,11 +18,11 @@ freely, subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+#include "Exception.hpp"
 #include "Palette.hpp"
 #include "Logger.hpp"
 
 #include <cstdio>
-#include <stdexcept>
 
 namespace fractalnova {
 
@@ -125,7 +125,7 @@ std::vector<Color> Palette::GetColorArray()
     logging::Debug("Palette size %d, total weight %f", size, weight);
 
     if (weight <= 0.0f || weightedColors.size() < 2) {
-        throw std::runtime_error("Invalid weight");
+        tools::ThrowException("Invalid weight");
     }
 
     // Make it cyclic

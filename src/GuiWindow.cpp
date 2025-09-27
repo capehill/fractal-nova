@@ -22,6 +22,7 @@ freely, subject to the following restrictions:
 #include "Logger.hpp"
 #include "BackBuffer.hpp"
 #include "EMenu.hpp"
+#include "Exception.hpp"
 #include "AboutWindow.hpp"
 #include "Version.hpp"
 
@@ -39,7 +40,6 @@ freely, subject to the following restrictions:
 #include <classes/window.h>
 
 #include <cstdio>
-#include <stdexcept>
 
 namespace fractalnova {
 
@@ -555,7 +555,7 @@ void GuiWindow::CreateWindow()
         TAG_DONE);
 
     if (!windowObject) {
-        throw std::runtime_error("Failed to create window");
+        tools::ThrowException("Failed to create window");
     }
 
     window = reinterpret_cast<Window *>(IIntuition->IDoMethod(windowObject, WM_OPEN));
@@ -565,7 +565,7 @@ void GuiWindow::CreateWindow()
     }
 
     if (!window) {
-        throw std::runtime_error("Failed to open window");
+        tools::ThrowException("Failed to open window");
     }
 
     SetLimits();
@@ -602,7 +602,7 @@ GuiWindow::GuiWindow(const Params& params):
     appPort = static_cast<MsgPort *>(IExec->AllocSysObjectTags(ASOT_PORT, TAG_DONE));
 
     if (!appPort) {
-        throw std::runtime_error("Failed to create app port");
+        tools::ThrowException("Failed to create app port");
     }
 
     CreateWindow();
@@ -872,7 +872,7 @@ void GuiWindow::HandleNewSize()
         WA_InnerHeight, &windowSize.height,
         TAG_DONE)) != 0)
     {
-        throw std::runtime_error("Failed to get window attributes");
+        tools::ThrowException("Failed to get window attributes");
     }
 
     Set(EFlag::Resize);
@@ -940,7 +940,7 @@ void GuiWindow::HandleUniconify()
     window = reinterpret_cast<Window *>(IIntuition->IDoMethod(windowObject, WM_OPEN));
 
     if (!window) {
-        throw std::runtime_error("Failed to reopen window");
+        tools::ThrowException("Failed to reopen window");
     }
 }
 

@@ -19,8 +19,11 @@ freely, subject to the following restrictions:
 */
 
 #include "Shader.hpp"
+#include "Exception.hpp"
 #include "DataBuffer.hpp"
 #include "Logger.hpp"
+
+#include <proto/Warp3DNova.h>
 
 namespace fractalnova {
 
@@ -59,12 +62,12 @@ void Shader::Compile(const std::string& fileName)
     if (!shader) {
         if (shaderLog) {
             logging::Error("Compiling %s failed (%u) with error: %s",
-               fileName.c_str(), errCode, ErrorToString(errCode).c_str());
+               fileName.c_str(), errCode, IW3DNova->W3DN_GetErrorString(errCode));
 
             context->DestroyShaderLog(shaderLog);
         }
 
-        ThrowOnError(errCode, "Failed to compile shader " + fileName);
+        tools::ThrowOnNovaError(errCode, "Failed to compile shader " + fileName);
     }
 
     if (shaderLog) {

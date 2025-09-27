@@ -1,7 +1,7 @@
 NAME = FractalNova
 
 COMPILER = ppc-amigaos-g++
-CFLAGS = -Wall -Wextra -Wpedantic -Wconversion -Werror -gstabs -O3 -std=c++17
+CFLAGS = -Wall -Wextra -Wpedantic -Wconversion -Werror -gstabs -O3 -std=c++20
 LDFLAGS = -athread=single -lauto
 
 SHADERS = shaders/mandelbrot.vert.spv \

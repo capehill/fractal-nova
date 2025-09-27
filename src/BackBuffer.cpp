@@ -19,11 +19,10 @@ freely, subject to the following restrictions:
 */
 
 #include "BackBuffer.hpp"
+#include "Exception.hpp"
 #include "Logger.hpp"
 
 #include <proto/graphics.h>
-
-#include <stdexcept>
 
 namespace fractalnova {
 
@@ -37,7 +36,7 @@ BackBuffer::BackBuffer(uint32 width, uint32 height, BitMap* friendBitMap)
     logging::Debug("Create BackBuffer of size %lu * %lu", width, height);
 
     if (!bitMap) {
-        throw std::runtime_error("Failed to allocate bitmap");
+        tools::ThrowException("Failed to allocate bitmap");
     }
 }
 

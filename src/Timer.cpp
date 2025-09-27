@@ -18,13 +18,12 @@ freely, subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+#include "Exception.hpp"
 #include "Timer.hpp"
 #include "Logger.hpp"
 
 #include <proto/exec.h>
 #include <proto/timer.h>
-
-#include <stdexcept>
 
 namespace fractalnova {
 
@@ -37,7 +36,7 @@ Timer::Timer()
         TAG_DONE));
 
     if (!port) {
-        throw std::runtime_error("Failed to create timer port");
+        tools::ThrowException("Failed to create timer port");
     }
 
     request = static_cast<struct TimeRequest *>(IExec->AllocSysObjectTags(ASOT_IOREQUEST,
@@ -48,7 +47,7 @@ Timer::Timer()
     if (!request) {
         FreeMsgPort();
 
-        throw std::runtime_error("Failed to create timer IO request");
+        tools::ThrowException("Failed to create timer IO request");
     }
 
     device = static_cast<BYTE>(IExec->OpenDevice(TIMERNAME, UNIT_WAITUNTIL,
@@ -58,7 +57,7 @@ Timer::Timer()
         FreeMsgPort();
         FreeIoRequest();
 
-        throw std::runtime_error("Failed to open timer.device");
+        tools::ThrowException("Failed to open timer.device");
     }
 
     if (!ITimer) {
@@ -70,7 +69,7 @@ Timer::Timer()
             FreeIoRequest();
             CloseDevice();
 
-            throw std::runtime_error("Failed to get timer interface");
+            tools::ThrowException("Failed to get timer interface");
         }
     }
 

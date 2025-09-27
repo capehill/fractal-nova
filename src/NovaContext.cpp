@@ -19,6 +19,7 @@ freely, subject to the following restrictions:
 */
 
 #include "NovaContext.hpp"
+#include "Exception.hpp"
 #include "GuiWindow.hpp"
 #include "Palette.hpp"
 #include "Texture.hpp"
@@ -31,14 +32,12 @@ freely, subject to the following restrictions:
 
 #include <proto/exec.h>
 #include <proto/graphics.h>
-#include <proto/warp3dnova.h>
-
-#include <stdexcept>
-
-namespace fractalnova {
+#include <proto/Warp3DNova.h>
 
 struct Warp3DNovaIFace* IW3DNova;
 static struct Library* NovaBase;
+
+namespace fractalnova {
 
 NovaContext::NovaContext(const GuiWindow& window, const int iterations)
     : NovaObject(nullptr), window(window), iterations(iterations)
@@ -53,14 +52,14 @@ NovaContext::NovaContext(const GuiWindow& window, const int iterations)
 
     if (!IW3DNova) {
         CloseLib();
-        throw std::runtime_error("Failed to open Warp3DNova.library");
+        tools::ThrowException("Failed to open Warp3DNova.library");
     }
 
     W3DN_ErrorCode errCode;
     context = IW3DNova->W3DN_CreateContextTags(&errCode, W3DNTag_Screen, nullptr, TAG_DONE);
 
     if (!context) {
-        ThrowOnError(errCode, "Failed to create Nova context");
+        tools::ThrowOnNovaError(errCode, "Failed to create Nova context");
     }
 
     Resize();
@@ -125,12 +124,12 @@ void NovaContext::Resize()
         W3DNTag_BitMap, backBuffer->Data(),
         TAG_DONE);
 
-    ThrowOnError(errCode, "Failed to bind buffer to frame buffer object");
+    tools::ThrowOnNovaError(errCode, "Failed to bind buffer to frame buffer object");
 
     //errCode = context->SetViewport(defaultRSO, 0.0, height, width, -height, 0.0, 1.0);
     errCode = context->SetViewport(defaultRSO, 0.0, 0.0, width, height, 0.0, 1.0);
 
-    ThrowOnError(errCode, "Failed to set viewport");
+    tools::ThrowOnNovaError(errCode, "Failed to set viewport");
 
     logging::Debug("Viewport %lu * %lu", width, height);
 }
@@ -143,7 +142,7 @@ void NovaContext::Clear() const
 
     const W3DN_ErrorCode errCode = context->Clear(defaultRSO, opaqueBlack, depth, stencil);
 
-    ThrowOnError(errCode, "Failed to clear");
+    tools::ThrowOnNovaError(errCode, "Failed to clear");
 }
 
 void NovaContext::Draw() const
@@ -154,7 +153,7 @@ void NovaContext::Draw() const
     constexpr uint32 base = 0;
     const W3DN_ErrorCode errCode = context->DrawArrays(defaultRSO, W3DN_PRIM_TRISTRIP, base, vbo->vertexCount);
 
-    ThrowOnError(errCode, "Failed to draw arrays");
+    tools::ThrowOnNovaError(errCode, "Failed to draw arrays");
 }
 
 void NovaContext::SwapBuffers()
@@ -164,14 +163,14 @@ void NovaContext::SwapBuffers()
     const uint32 submitID = context->Submit(&errCode);
 
     if (!submitID) {
-        ThrowOnError(errCode, "Submit failed");
+        tools::ThrowOnNovaError(errCode, "Submit failed");
     }
 
     constexpr uint32 noTimeout = 0;
 
     errCode = context->WaitDone(submitID, noTimeout);
 
-    ThrowOnError(errCode, "WaitDone failed");
+    tools::ThrowOnNovaError(errCode, "WaitDone failed");
 
     window.Draw(backBuffer.get());
 }

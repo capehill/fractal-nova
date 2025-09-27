@@ -19,13 +19,14 @@ freely, subject to the following restrictions:
 */
 
 #include "AboutWindow.hpp"
+#include "Exception.hpp"
 #include "Version.hpp"
 
 #include <proto/intuition.h>
 
 #include <classes/requester.h>
 
-#include <stdexcept>
+#include <cstdio>
 
 namespace fractalnova {
 
@@ -47,7 +48,7 @@ AboutWindow::AboutWindow(Window* window)
         TAG_DONE);
 
     if (!object) {
-        throw std::runtime_error("Failed to open About window");
+        tools::ThrowException("Failed to open About window");
     }
 
     IIntuition->IDoMethod(object, RM_OPENREQ, nullptr, window, nullptr);

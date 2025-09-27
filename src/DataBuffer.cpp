@@ -19,6 +19,7 @@ freely, subject to the following restrictions:
 */
 
 #include "DataBuffer.hpp"
+#include "Exception.hpp"
 #include "Logger.hpp"
 
 namespace fractalnova {
@@ -34,18 +35,18 @@ DataBuffer::DataBuffer(W3DN_Context* context, const W3DN_ShaderType shaderType, 
     dbo = context->CreateDataBufferObjectTags(&errCode, size, W3DN_STREAM_DRAW, 1,
         TAG_DONE);
 
-    ThrowOnError(errCode, "Failed to create data buffer object");
+    tools::ThrowOnNovaError(errCode, "Failed to create data buffer object");
 
     constexpr uint64 offset = 0;
 
     context->DBOSetBufferTags(dbo, bufferIdx, offset, size, shader,
         TAG_DONE);
 
-    ThrowOnError(errCode, "Failed to set data buffer object");
+    tools::ThrowOnNovaError(errCode, "Failed to set data buffer object");
 
     context->BindShaderDataBuffer(defaultRSO, shaderType, dbo, bufferIdx);
 
-    ThrowOnError(errCode, "Failed to bind data buffer object");
+    tools::ThrowOnNovaError(errCode, "Failed to bind data buffer object");
 }
 
 DataBuffer::~DataBuffer()

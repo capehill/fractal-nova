@@ -20,6 +20,7 @@ freely, subject to the following restrictions:
 
 #include "Program.hpp"
 #include "VertexShader.hpp"
+#include "Exception.hpp"
 #include "FragmentShader.hpp"
 #include "Logger.hpp"
 
@@ -40,12 +41,12 @@ Program::Program(W3DN_Context* context, const int iterations, const char* name):
         TAG_DONE);
 
     if (!shaderPipeline) {
-        ThrowOnError(errCode, "Failed to create shader pipeline");
+        tools::ThrowOnNovaError(errCode, "Failed to create shader pipeline");
     }
 
     errCode = context->SetShaderPipeline(defaultRSO, shaderPipeline);
 
-    ThrowOnError(errCode, "Failed to set shader pipeline");
+    tools::ThrowOnNovaError(errCode, "Failed to set shader pipeline");
 }
 
 Program::~Program()

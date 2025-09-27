@@ -19,6 +19,7 @@ freely, subject to the following restrictions:
 */
 
 #include "VertexShader.hpp"
+#include "Exception.hpp"
 #include "DataBuffer.hpp"
 #include "Logger.hpp"
 #include "Vertex.hpp"
@@ -62,7 +63,7 @@ Vertex VertexShader::UpdateDBO(const float zoom, const Vertex& oldPosition, cons
     W3DN_BufferLock* lock = context->DBOLock(&errCode, dbo->Ptr(), readOffset, readSize);
 
     if (!lock) {
-        ThrowOnError(errCode, "Failed to lock data buffer object (vertex)");
+        tools::ThrowOnNovaError(errCode, "Failed to lock data buffer object (vertex)");
     }
 
     auto data = reinterpret_cast<VertexShaderData *>(lock->buffer);
@@ -76,7 +77,7 @@ Vertex VertexShader::UpdateDBO(const float zoom, const Vertex& oldPosition, cons
 
     errCode = context->BufferUnlock(lock, writeOffset, sizeof(VertexShaderData));
 
-    ThrowOnError(errCode, "Failed to unlock data buffer object (vertex)");
+    tools::ThrowOnNovaError(errCode, "Failed to unlock data buffer object (vertex)");
 
     return oldPos;
 }

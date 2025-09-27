@@ -18,6 +18,7 @@ freely, subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+#include "Exception.hpp"
 #include "Texture.hpp"
 #include "Logger.hpp"
 
@@ -38,7 +39,7 @@ Texture::Texture(W3DN_Context* context, const std::vector<Color>& colors): NovaO
     texture = context->CreateTexture(&errCode, W3DN_TEXTURE_2D, W3DNPF_RGBA, W3DNEF_UINT8,
         colors.size(), height, depth, mipmapped, W3DN_STATIC_DRAW);
 
-    ThrowOnError(errCode, "Failed to create texture");
+    tools::ThrowOnNovaError(errCode, "Failed to create texture");
 
     constexpr uint32 level = 0;
     constexpr uint32 arrayIdx = 0;
@@ -46,11 +47,11 @@ Texture::Texture(W3DN_Context* context, const std::vector<Color>& colors): NovaO
 
     errCode = context->TexUpdateImage(texture, const_cast<Color*>(colors.data()), level, arrayIdx, sizeof(Color) * colors.size(), srcRowsPerLayer);
 
-    ThrowOnError(errCode, "Failed to update texture");
+    tools::ThrowOnNovaError(errCode, "Failed to update texture");
 
     sampler = context->CreateTexSampler(&errCode);
 
-    ThrowOnError(errCode, "Failed to create texture sampler");
+    tools::ThrowOnNovaError(errCode, "Failed to create texture sampler");
 
     constexpr bool textureFiltering { true };
 
@@ -58,7 +59,7 @@ Texture::Texture(W3DN_Context* context, const std::vector<Color>& colors): NovaO
 
     context->BindTexture(defaultRSO, textureUnit, texture, sampler);
 
-    ThrowOnError(errCode, "Failed to bind texture");
+    tools::ThrowOnNovaError(errCode, "Failed to bind texture");
 }
 
 Texture::~Texture()
@@ -85,7 +86,7 @@ void Texture::SetFiltering(const bool textureFiltering)
         W3DN_TEXTURE_MAG_FILTER, textureFiltering ? W3DN_LINEAR : W3DN_NEAREST,
         TAG_DONE);
 
-    ThrowOnError(errCode, "Failed to set texture sampler parameters");
+    tools::ThrowOnNovaError(errCode, "Failed to set texture sampler parameters");
 }
 
 } // fractalnova

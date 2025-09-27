@@ -18,6 +18,7 @@ freely, subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+#include "Exception.hpp"
 #include "VertexBuffer.hpp"
 #include "Vertex.hpp"
 #include "Logger.hpp"
@@ -50,7 +51,7 @@ VertexBuffer::VertexBuffer(W3DN_Context* context): NovaObject(context)
     vbo = context->CreateVertexBufferObjectTags(&errCode,
         vertexCount * sizeof(Vertex4), W3DN_STATIC_DRAW, arrayCount, TAG_DONE);
 
-    ThrowOnError(errCode, "Failed create vertex buffer object");
+    tools::ThrowOnNovaError(errCode, "Failed create vertex buffer object");
 
     constexpr uint32 posArrayIndex { 0 };
     constexpr uint32 texCoordArrayIndex { 1 };
@@ -63,18 +64,18 @@ VertexBuffer::VertexBuffer(W3DN_Context* context): NovaObject(context)
 
     errCode = context->VBOSetArray(vbo, posArrayIndex, W3DNEF_FLOAT, FALSE, posElementCount, stride, posBase, vertexCount);
 
-    ThrowOnError(errCode, "Failed to set VBO array (pos)");
+    tools::ThrowOnNovaError(errCode, "Failed to set VBO array (pos)");
 
     errCode = context->VBOSetArray(vbo, texCoordArrayIndex, W3DNEF_FLOAT, FALSE, texCoordElementCount, stride, texCoordBase, vertexCount);
 
-    ThrowOnError(errCode, "Failed to set VBO array (texCoord)");
+    tools::ThrowOnNovaError(errCode, "Failed to set VBO array (texCoord)");
 
     constexpr uint64 readOffset = 0;
     constexpr uint64 readSize = 0;
 
     W3DN_BufferLock* lock = context->VBOLock(&errCode, vbo, readOffset, readSize);
 
-    ThrowOnError(errCode, "Failed to lock vertex buffer object");
+    tools::ThrowOnNovaError(errCode, "Failed to lock vertex buffer object");
 
     Vertex4* vertices = reinterpret_cast<Vertex4 *>(lock->buffer);
 
@@ -108,15 +109,15 @@ VertexBuffer::VertexBuffer(W3DN_Context* context): NovaObject(context)
 
     errCode = context->BufferUnlock(lock, writeOffset, lock->size);
 
-    ThrowOnError(errCode, "Failed to unlock vertex buffer object");
+    tools::ThrowOnNovaError(errCode, "Failed to unlock vertex buffer object");
 
     errCode = context->BindVertexAttribArray(defaultRSO, posAttributeIndex, vbo, posArrayIndex);
 
-    ThrowOnError(errCode, "Failed to bind vertex attribute array (pos)");
+    tools::ThrowOnNovaError(errCode, "Failed to bind vertex attribute array (pos)");
 
     errCode = context->BindVertexAttribArray(defaultRSO, texCoordAttributeIndex, vbo, texCoordArrayIndex);
 
-    ThrowOnError(errCode, "Failed to bind vertex attribute array (texCoord)");
+    tools::ThrowOnNovaError(errCode, "Failed to bind vertex attribute array (texCoord)");
 }
 
 } // fractalnova

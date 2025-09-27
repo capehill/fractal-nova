@@ -22,6 +22,8 @@ freely, subject to the following restrictions:
 
 #include "NovaObject.hpp"
 
+#include <cstdint>
+
 namespace fractalnova {
 
 class DataBuffer: public NovaObject

@@ -20,6 +20,7 @@ freely, subject to the following restrictions:
 
 #include "FragmentShader.hpp"
 #include "DataBuffer.hpp"
+#include "Exception.hpp"
 #include "Logger.hpp"
 #include "Vertex.hpp"
 
@@ -51,7 +52,7 @@ void FragmentShader::UpdateDBO(const int iterations, const Vertex& complex) cons
     W3DN_BufferLock* lock = context->DBOLock(&errCode, dbo->Ptr(), readOffset, readSize);
 
     if (!lock) {
-        ThrowOnError(errCode, "Failed to lock fragment shader DBO");
+        tools::ThrowOnNovaError(errCode, "Failed to lock fragment shader DBO");
     }
 
     auto data = reinterpret_cast<FragmentShaderData *>(lock->buffer);
@@ -63,7 +64,7 @@ void FragmentShader::UpdateDBO(const int iterations, const Vertex& complex) cons
 
     errCode = context->BufferUnlock(lock, writeOffset, sizeof(FragmentShaderData));
 
-    ThrowOnError(errCode, "Failed to unlock fragment shader DBO");
+    tools::ThrowOnNovaError(errCode, "Failed to unlock fragment shader DBO");
 }
 
 } // fractalnova
